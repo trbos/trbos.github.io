@@ -3,7 +3,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;background:var(--page)}
-body:is([data-page=browser],[data-page=kahoot],[data-page=blooket],[data-page=gimkit]){height:100vh;height:100dvh;min-height:0;overflow:hidden}
+body[data-page=browser]{height:100vh;height:100dvh;min-height:0;overflow:hidden}
 a{color:inherit}
 button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button{font:inherit;font-size:14px;line-height:1.35;cursor:pointer}
@@ -23,11 +23,10 @@ h1{font-size:32px;line-height:1.2;letter-spacing:-.035em;font-weight:700;margin:
 .home-links{padding-top:16px;padding-bottom:40px}
 .destination{display:flex;align-items:center;min-height:88px;padding:20px 4px;text-decoration:none;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.02em}
 .destination+.destination{border-top:1px solid var(--line)}
+.destination[type=button]{width:100%;text-align:left;border-inline:0;border-bottom:0;border-radius:0;background:transparent;color:var(--text)}
+.destination[type=button]:first-child{border-top:0}
 button{min-height:48px;border-radius:12px;padding:10px 20px;border:1px solid var(--line);background:var(--band);color:var(--text)}
 .text-button{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--accent);padding:8px;font-weight:600}
-#client-tools{flex:none;border-bottom:1px solid var(--line)}
-.client-actions{display:flex;justify-content:flex-end;align-items:center;gap:16px;min-height:44px}
-.client-actions button{min-height:44px;padding:8px;border:0;background:transparent;color:var(--muted)}
 #player{flex:1;position:relative;min-height:0;background:var(--page)}
 #frame-host,#frame-host iframe{position:absolute;inset:0;width:100%;height:100%}
 #frame-host iframe{display:block;border:0;background:var(--page)}

@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://browse--wordbuilder--675vggg6lnyg.code.run; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>trbos</title>
   <link rel="icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="assets/site.css?v=clients-4">
-  <script src="assets/site.js?v=clients-4" defer></script>
+  <link rel="stylesheet" href="assets/site.css?v=copy-1">
+  <script src="assets/site.js?v=copy-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -22,9 +22,6 @@
       <a href="#/hx" data-nav="hx">Hx</a>
     </nav>
   </div></header>
-  <div id="client-tools" hidden><div class="container client-actions">
-    <button id="reload-client" type="button">Reload</button>
-  </div></div>
   <main id="content" tabindex="-1">
     <div id="title-band" class="title-band" hidden><div class="container"><h1 id="page-title">Hx</h1></div></div>
     <div id="home" class="container home-links">
@@ -36,9 +33,10 @@
       </a>
     </div>
     <section id="hx" class="container home-links" aria-label="Hx tools" hidden>
-      <a class="destination" href="#/kahoot" data-client="kahoot">Kahoot</a>
-      <a class="destination" href="#/blooket" data-client="blooket">Blooket</a>
-      <a class="destination" href="#/gimkit" data-client="gimkit">Gimkit</a>
+      <button class="destination" type="button" data-copy="hx" aria-label="Copy Hx bookmarklet" aria-live="polite">Hx</button>
+      <button class="destination" type="button" data-copy="kahoot" aria-label="Copy Kahoot bookmarklet" aria-live="polite">Kahoot</button>
+      <button class="destination" type="button" data-copy="blooket" aria-label="Copy Blooket bookmarklet" aria-live="polite">Blooket</button>
+      <button class="destination" type="button" data-copy="gimkit" aria-label="Copy Gimkit bookmarklet" aria-live="polite">Gimkit</button>
     </section>
   </main>
   <section id="player" aria-label="Browser" hidden>
