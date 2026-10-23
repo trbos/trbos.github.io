@@ -16,6 +16,11 @@
   const loading = document.getElementById('loading');
   const timeout = document.getElementById('timeout');
   const openExternal = document.getElementById('open-external');
+  const clientTools = document.getElementById('client-tools');
+  const openClient = document.getElementById('open-client');
+  const directClient = document.getElementById('direct-client');
+  const directLaunch = document.getElementById('direct-launch');
+  const appleTouch = /iPad|iPhone|iPod/i.test(navigator.userAgent || '') || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
   let active = null, currentPage = null;
   let browserSite = readSite(new URLSearchParams(location.search).get('url'));
 
@@ -47,10 +52,21 @@
   function openPlayer(kind) {
     clearPlayer();
     const client = CLIENTS[kind], url = new URL(client.url);
+    player.setAttribute('aria-label',client.name);
+    directClient.hidden = true;
+    clientTools.hidden = kind === 'browser'; openClient.href = client.url;
+    if (kind !== 'browser' && appleTouch) {
+      clientTools.hidden = true; loading.hidden = true; timeout.hidden = true;
+      directLaunch.href = client.url; directLaunch.textContent = 'Open ' + client.name; directClient.hidden = false;
+      player.setAttribute('aria-busy','false');
+      // A previous hash entry must not send Back into a redirect loop.
+      // Nested launchers retain an explicit top-level link instead.
+      if (window.top === window.self) location.replace(client.url);
+      return;
+    }
     if (kind === 'browser' && browserSite) url.searchParams.set('url',browserSite);
     const frame = document.createElement('iframe'), state = {frame,timer:null,kind};
     active = state; frame.title = client.name;
-    player.setAttribute('aria-label',client.name);
     loading.querySelector('p').textContent = 'Loading ' + client.name + '…';
     openExternal.hidden = kind === 'browser'; openExternal.href = url.href;
     frame.allow = kind === 'browser' ? 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write' : 'autoplay; fullscreen';
@@ -74,6 +90,12 @@
     const embedded = Object.hasOwn(CLIENTS,page);
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));
     updateBrowserLinks();
+    for (const link of document.querySelectorAll('[data-client]')) {
+      if (!appleTouch) continue;
+      const client = CLIENTS[link.dataset.client];
+      link.href = client.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.setAttribute('aria-label',client.name + ' (opens in a new tab)');
+    }
     const selectedNav = embedded && page !== 'browser' ? 'hx' : page;
     for (const link of document.querySelectorAll('[data-nav]')) {
       if (link.dataset.nav === selectedNav) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
@@ -81,6 +103,7 @@
     document.body.dataset.page = page;
     content.hidden = embedded; titleBand.hidden = page !== 'hx'; player.hidden = !embedded;
     home.hidden = page !== 'home'; hx.hidden = page !== 'hx';
+    if (!embedded) clientTools.hidden = true;
     document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : CLIENTS[page].name + ' · trbos';
     currentPage = page;
     if (embedded) { openPlayer(page); return; }
@@ -97,6 +120,7 @@
     if (active) active.frame.focus(); else content.focus();
   });
   document.getElementById('retry').addEventListener('click',() => {if (active) openPlayer(active.kind);});
+  document.getElementById('reload-client').addEventListener('click',() => {if (active) openPlayer(active.kind);});
   window.addEventListener('hashchange',render);
   window.addEventListener('pagehide',clearPlayer);
   window.addEventListener('pageshow',event => {if (event.persisted) render();});

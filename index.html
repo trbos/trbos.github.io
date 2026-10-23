@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://browse--wordbuilder--675vggg6lnyg.code.run https://kahootx-client.x-network.lol https://x-client.x-network.lol; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>trbos</title>
   <link rel="icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="assets/site.css?v=clients-1">
-  <script src="assets/site.js?v=clients-1" defer></script>
+  <link rel="stylesheet" href="assets/site.css?v=clients-2">
+  <script src="assets/site.js?v=clients-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -22,6 +22,10 @@
       <a href="#/hx" data-nav="hx">Hx</a>
     </nav>
   </div></header>
+  <div id="client-tools" hidden><div class="container client-actions">
+    <button id="reload-client" type="button">Reload</button>
+    <a id="open-client" class="text-button" target="_blank" rel="noopener noreferrer">Open directly</a>
+  </div></div>
   <main id="content" tabindex="-1">
     <div id="title-band" class="title-band" hidden><div class="container"><h1 id="page-title">Hx</h1></div></div>
     <div id="home" class="container home-links">
@@ -33,12 +37,13 @@
       </a>
     </div>
     <section id="hx" class="container home-links" aria-label="Hx tools" hidden>
-      <a class="destination" href="#/kahoot">Kahoot</a>
-      <a class="destination" href="#/blooket">Blooket</a>
+      <a class="destination" href="#/kahoot" data-client="kahoot">Kahoot</a>
+      <a class="destination" href="#/blooket" data-client="blooket">Blooket</a>
     </section>
   </main>
   <section id="player" aria-label="Browser" hidden>
     <div id="frame-host"></div>
+    <div id="direct-client" hidden><a id="direct-launch" class="direct-link" target="_blank" rel="noopener noreferrer">Open</a></div>
     <div id="loading" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading Browser…</p></div>
     <div id="timeout" hidden><p role="status">This is taking longer than expected.</p><button id="retry" type="button">Retry</button><a id="open-external" class="text-button" target="_blank" rel="noopener noreferrer" hidden>Open in new tab</a></div>
   </section>

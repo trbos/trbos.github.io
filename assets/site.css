@@ -25,6 +25,11 @@ h1{font-size:32px;line-height:1.2;letter-spacing:-.035em;font-weight:700;margin:
 .destination+.destination{border-top:1px solid var(--line)}
 button{min-height:48px;border-radius:12px;padding:10px 20px;border:1px solid var(--line);background:var(--band);color:var(--text)}
 .text-button{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--accent);padding:8px;font-weight:600}
+#client-tools{flex:none;border-bottom:1px solid var(--line)}
+.client-actions{display:flex;justify-content:flex-end;align-items:center;gap:16px;min-height:44px}
+.client-actions button{min-height:44px;padding:8px;border:0;background:transparent;color:var(--muted)}
+#direct-client{position:absolute;inset:0;display:grid;place-content:center;padding:24px}
+.direct-link{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;padding:12px 20px;background:var(--accent);color:var(--accent-text);font-size:14px;font-weight:600;text-decoration:none}
 #player{flex:1;position:relative;min-height:0;background:var(--page)}
 #frame-host,#frame-host iframe{position:absolute;inset:0;width:100%;height:100%}
 #frame-host iframe{display:block;border:0;background:var(--page)}
