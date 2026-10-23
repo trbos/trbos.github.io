@@ -65,7 +65,7 @@
     if (bookmarkletTask) return bookmarkletTask;
     copy.disabled = true; show.disabled = true; retryBookmarklet.hidden = true;
     note('Loading bookmarklet…');
-    bookmarkletTask = fetch('assets/hx.txt',{credentials:'omit',signal:AbortSignal.timeout(15000)})
+    bookmarkletTask = fetch('assets/hx.txt?v=ec09d146cfb8',{credentials:'omit',signal:AbortSignal.timeout(15000)})
       .then(response => {if (!response.ok) throw Error('Unavailable'); return response.text();})
       .then(text => {
         // The supplied file remains passive text. Only a user copy action uses it.
