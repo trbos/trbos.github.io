@@ -1,7 +1,12 @@
 (() => {
   'use strict';
   const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
-  const POLYTRACK_URL = new URL('polytrack/', location.href).href;
+  const CLIENTS = {
+    browser:{name:'Browser',url:BROWSER_ORIGIN + '/'},
+    kahoot:{name:'Kahoot',url:'https://kahootx-client.x-network.lol/'},
+    blooket:{name:'Blooket',url:'https://x-client.x-network.lol/play'}
+  };
+  const POLYTRACK_URL = new URL('polytrack/',location.href).href;
   const content = document.getElementById('content');
   const titleBand = document.getElementById('title-band');
   const home = document.getElementById('home');
@@ -10,13 +15,8 @@
   const frameHost = document.getElementById('frame-host');
   const loading = document.getElementById('loading');
   const timeout = document.getElementById('timeout');
-  const copy = document.getElementById('copy-bookmarklet');
-  const show = document.getElementById('show-code');
-  const codePanel = document.getElementById('code-panel');
-  const code = document.getElementById('bookmarklet-code');
-  const status = document.getElementById('copy-status');
-  const retryBookmarklet = document.getElementById('retry-bookmarklet');
-  let active = null, currentPage = null, bookmarklet, bookmarkletTask;
+  const openExternal = document.getElementById('open-external');
+  let active = null, currentPage = null;
   let browserSite = readSite(new URLSearchParams(location.search).get('url'));
 
   function readSite(value) {
@@ -44,79 +44,51 @@
     clearTimeout(state.timer); loading.hidden = true; timeout.hidden = true;
     player.setAttribute('aria-busy','false');
   }
-  function openPlayer() {
+  function openPlayer(kind) {
     clearPlayer();
-    const url = new URL(BROWSER_ORIGIN + '/');
-    if (browserSite) url.searchParams.set('url',browserSite);
-    const frame = document.createElement('iframe'), state = {frame,timer:null};
-    active = state; frame.title = 'Browser';
-    frame.allow = 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
+    const client = CLIENTS[kind], url = new URL(client.url);
+    if (kind === 'browser' && browserSite) url.searchParams.set('url',browserSite);
+    const frame = document.createElement('iframe'), state = {frame,timer:null,kind};
+    active = state; frame.title = client.name;
+    player.setAttribute('aria-label',client.name);
+    loading.querySelector('p').textContent = 'Loading ' + client.name + '…';
+    openExternal.hidden = kind === 'browser'; openExternal.href = url.href;
+    frame.allow = kind === 'browser' ? 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write' : 'autoplay; fullscreen';
     frame.allowFullscreen = true; frame.referrerPolicy = 'strict-origin-when-cross-origin';
     loading.hidden = false; timeout.hidden = true; player.setAttribute('aria-busy','true');
     state.timer = setTimeout(() => {
       if (active !== state) return;
       loading.hidden = true; timeout.hidden = false; player.setAttribute('aria-busy','false');
     },45000);
+    // The clients inject their menus inside their own isolated pages. Their
+    // scripts and game sessions are never evaluated or read by the launcher.
+    if (kind !== 'browser') frame.addEventListener('load',() => finishLoading(state),{once:true});
     frame.src = url.href; frameHost.append(frame);
   }
-  function note(message) { status.textContent = message; status.hidden = !message; }
-  function loadBookmarklet() {
-    if (bookmarklet !== undefined) return Promise.resolve(bookmarklet);
-    if (bookmarkletTask) return bookmarkletTask;
-    copy.disabled = true; show.disabled = true; retryBookmarklet.hidden = true;
-    note('Loading bookmarklet…');
-    bookmarkletTask = fetch('assets/hx.txt?v=ec09d146cfb8',{credentials:'omit',signal:AbortSignal.timeout(15000)})
-      .then(response => {if (!response.ok) throw Error('Unavailable'); return response.text();})
-      .then(text => {
-        // The supplied file remains passive text. Only a user copy action uses it.
-        bookmarklet = text; code.value = text; copy.disabled = false; show.disabled = false; note('');
-        return text;
-      }).catch(() => {
-        bookmarkletTask = null; note('Could not load the bookmarklet. Retry.'); retryBookmarklet.hidden = false;
-        return undefined;
-      });
-    return bookmarkletTask;
-  }
-  function revealCode(select) {
-    codePanel.hidden = false; show.setAttribute('aria-expanded','true'); show.textContent = 'Hide code';
-    if (select) { code.focus(); code.select(); code.setSelectionRange(0,code.value.length); }
-  }
-  copy.addEventListener('click',async () => {
-    if (bookmarklet === undefined) return;
-    try {
-      if (!navigator.clipboard?.writeText) throw Error('Clipboard unavailable');
-      await navigator.clipboard.writeText(bookmarklet); note('Copied');
-    } catch { revealCode(true); note('Select all, then copy.'); }
-  });
-  show.addEventListener('click',() => {
-    if (bookmarklet === undefined) return;
-    if (codePanel.hidden) revealCode(false);
-    else { codePanel.hidden = true; show.setAttribute('aria-expanded','false'); show.textContent = 'Show code'; }
-  });
-  retryBookmarklet.addEventListener('click',loadBookmarklet);
-
   function render() {
     const current = route();
     if (current.path === '/polytrack') { location.replace(POLYTRACK_URL); return; }
-    const page = current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : 'home';
+    const kind = current.path.slice(1);
+    const page = Object.hasOwn(CLIENTS,kind) ? kind : current.path === '/hx' ? 'hx' : 'home';
     const changed = currentPage !== null && currentPage !== page;
+    const embedded = Object.hasOwn(CLIENTS,page);
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));
     updateBrowserLinks();
+    const selectedNav = embedded && page !== 'browser' ? 'hx' : page;
     for (const link of document.querySelectorAll('[data-nav]')) {
-      if (link.dataset.nav === page) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
+      if (link.dataset.nav === selectedNav) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
     }
     document.body.dataset.page = page;
-    content.hidden = page === 'browser'; titleBand.hidden = page !== 'hx'; player.hidden = page !== 'browser';
+    content.hidden = embedded; titleBand.hidden = page !== 'hx'; player.hidden = !embedded;
     home.hidden = page !== 'home'; hx.hidden = page !== 'hx';
-    document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : 'Browser';
+    document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : CLIENTS[page].name + ' · trbos';
     currentPage = page;
-    if (page === 'browser') { openPlayer(); return; }
+    if (embedded) { openPlayer(page); return; }
     clearPlayer();
-    if (page === 'hx') loadBookmarklet();
     if (changed) { window.scrollTo(0,0); content.focus({preventScroll:true}); }
   }
   window.addEventListener('message',event => {
-    if (!active || event.source !== active.frame.contentWindow || event.origin !== BROWSER_ORIGIN) return;
+    if (!active || active.kind !== 'browser' || event.source !== active.frame.contentWindow || event.origin !== BROWSER_ORIGIN) return;
     if (event.data?.type === 'browser:ready') finishLoading(active);
     if (event.data?.type === 'browser:launcher') location.hash = '#/';
   });
@@ -124,7 +96,7 @@
     event.preventDefault();
     if (active) active.frame.focus(); else content.focus();
   });
-  document.getElementById('retry').addEventListener('click',() => {if (active) openPlayer();});
+  document.getElementById('retry').addEventListener('click',() => {if (active) openPlayer(active.kind);});
   window.addEventListener('hashchange',render);
   window.addEventListener('pagehide',clearPlayer);
   window.addEventListener('pageshow',event => {if (event.persisted) render();});
