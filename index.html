@@ -174,23 +174,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
       #frame-host, #frame-host iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
       #frame-host iframe { display: block; border: 0; background: var(--page); }
-      #back {
-        position: absolute;
-        top: max(12px, env(safe-area-inset-top));
-        left: max(12px, env(safe-area-inset-left));
-        z-index: 3;
-        display: grid;
-        place-items: center;
-        width: 44px;
-        height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        color: var(--text);
-        background: var(--surface);
-        text-decoration: none;
-        touch-action: manipulation;
-      }
-      #back svg { width: 22px; height: 22px; }
       #loading, #timeout {
         position: absolute;
         inset: 0;
@@ -227,7 +210,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
       @keyframes turn { to { transform: rotate(360deg); } }
       @media (hover: hover) {
-        :is(.game, #back, #retry):hover { background: #233247; border-color: #51638b; }
+        :is(.game, #retry):hover { background: #233247; border-color: #51638b; }
       }
       @media (max-width: 620px) {
         #launcher { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
@@ -249,14 +232,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <main id="launcher">
       <nav aria-label="Launcher">
         <a id="browser-link" class="game" href="#/browser">Browser</a>
-        <a class="game" href="#/polytrack">PolyTrack</a>
+        <a class="game" href="https://launch--wordbuilder--675vggg6lnyg.code.run/polytrack/play/">PolyTrack</a>
       </nav>
     </main>
     <section id="player" aria-label="Player" hidden>
       <div id="frame-host"></div>
-      <a id="back" href="#/" aria-label="Back to launcher" hidden>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </a>
       <div id="loading" role="status">
         <span class="spinner" aria-hidden="true"></span>
         <p id="loading-label"></p>
@@ -271,13 +251,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         'use strict';
 
         const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
-        const POLYTRACK_URL = 'https://launch--wordbuilder--675vggg6lnyg.code.run/polytrack/play/?iframe=1';
+        const POLYTRACK_URL = 'https://launch--wordbuilder--675vggg6lnyg.code.run/polytrack/play/';
         const LOAD_TIMEOUT_MS = 45000;
         const launcher = document.getElementById('launcher');
         const player = document.getElementById('player');
         const frameHost = document.getElementById('frame-host');
         const browserLink = document.getElementById('browser-link');
-        const back = document.getElementById('back');
         const loading = document.getElementById('loading');
         const loadingLabel = document.getElementById('loading-label');
         const timeout = document.getElementById('timeout');
@@ -327,30 +306,27 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           player.setAttribute('aria-busy', 'false');
         }
 
-        function openPlayer(name) {
+        function openPlayer() {
           clearPlayer();
-          const isBrowser = name === 'browser';
-          const url = new URL(isBrowser ? BROWSER_ORIGIN + '/' : POLYTRACK_URL);
-          if (isBrowser && browserSite) url.searchParams.set('url', browserSite);
+          const url = new URL(BROWSER_ORIGIN + '/');
+          if (browserSite) url.searchParams.set('url', browserSite);
           const frame = document.createElement('iframe');
-          const state = { name, frame, timer: null };
+          const state = { frame, timer: null };
           active = state;
-          frame.title = isBrowser ? 'Browser' : 'PolyTrack';
+          frame.title = 'Browser';
           frame.allow = 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
           frame.allowFullscreen = true;
           frame.referrerPolicy = 'strict-origin-when-cross-origin';
-          loadingLabel.textContent = isBrowser ? 'Loading Browser…' : 'Loading PolyTrack…';
+          loadingLabel.textContent = 'Loading Browser…';
           loading.hidden = false;
           timeout.hidden = true;
-          back.hidden = isBrowser;
           launcher.hidden = true;
           player.hidden = false;
           player.setAttribute('aria-label', frame.title);
           player.setAttribute('aria-busy', 'true');
           document.title = frame.title;
 
-          // Browser confirms UI readiness. PolyTrack only signals document load.
-          if (!isBrowser) frame.addEventListener('load', () => finishLoading(state), { once: true });
+          // Browser confirms that its UI initialized through a validated message.
           state.timer = setTimeout(() => {
             if (active !== state) return;
             loading.hidden = true;
@@ -367,27 +343,31 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             browserSite = readSite(current.query.get('url'));
           }
           updateBrowserLink();
-          if (current.path === '/browser' || current.path === '/polytrack') {
-            openPlayer(current.path.slice(1));
+          if (current.path === '/polytrack') {
+            location.replace(POLYTRACK_URL);
             return;
           }
-          const previous = active && active.name;
+          if (current.path === '/browser') {
+            openPlayer();
+            return;
+          }
+          const previous = active !== null;
           clearPlayer();
           player.hidden = true;
           launcher.hidden = false;
           document.title = 'Browser & PolyTrack';
-          if (previous) launcher.querySelector(previous === 'browser' ? '#browser-link' : 'a[href="#/polytrack"]').focus({ preventScroll: true });
+          if (previous) browserLink.focus({ preventScroll: true });
         }
 
         window.addEventListener('message', event => {
-          if (!active || active.name !== 'browser' || event.source !== active.frame.contentWindow || event.origin !== BROWSER_ORIGIN) return;
+          if (!active || event.source !== active.frame.contentWindow || event.origin !== BROWSER_ORIGIN) return;
           if (event.data && event.data.type === 'browser:ready') finishLoading(active);
           if (event.data && event.data.type === 'browser:launcher') location.hash = '#/';
         });
         window.addEventListener('hashchange', render);
         window.addEventListener('pagehide', clearPlayer);
         window.addEventListener('pageshow', event => { if (event.persisted) render(); });
-        retry.addEventListener('click', () => { if (active) openPlayer(active.name); });
+        retry.addEventListener('click', () => { if (active) openPlayer(); });
         render();
       })();
     </script>
