@@ -6,7 +6,7 @@
     hx:{file:'assets/hx.txt'},
     kahoot:{file:'assets/bookmarklets/kahoot.txt?v=2'},
     blooket:{file:'assets/bookmarklets/blooket.txt?v=2'},
-    gimkit:{file:'assets/bookmarklets/gimkit.txt?v=2'}
+    gimkit:{file:'assets/bookmarklets/gimkit.txt?v=3'}
   };
   const content = document.getElementById('content');
   const titleBand = document.getElementById('title-band');
