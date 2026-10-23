@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
-  const POLYTRACK_URL = new URL('polytrack/',location.href).href;
+  const POLYTRACK_URL = 'https://p01--wordbuilder--675vggg6lnyg.code.run/polytrack/play/';
   const TOOLS = {
     kahoot:{file:'assets/bookmarklets/kahoot.txt?v=2'},
     blooket:{file:'assets/bookmarklets/blooket.txt?v=2'},
