@@ -33,6 +33,7 @@ button{min-height:48px;border-radius:12px;padding:10px 20px;border:1px solid var
 #frame-host iframe{display:block;border:0;background:var(--page)}
 #loading,#timeout{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:16px;padding:24px;text-align:center;z-index:2}
 #loading{pointer-events:none}
+#timeout{background:var(--page)}
 #loading p,#timeout p{font-size:14px;line-height:1.5;margin:0}
 .spinner{width:24px;height:24px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:turn .8s linear infinite}
 .skip-link{position:fixed;top:8px;left:8px;z-index:10;padding:12px 18px;background:var(--accent);color:var(--accent-text);border-radius:12px;transform:translateY(-160%)}

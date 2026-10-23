@@ -100,9 +100,9 @@
     } else if (event.data?.game === active.kind) {
       if (event.data.type === 'game-client:ready') finishLoading(active);
       if (event.data.type === 'game-client:error') {
-        clearTimeout(active.timer); loading.hidden = true; timeout.hidden = false;
-        timeout.querySelector('p').textContent = 'Unable to open ' + CLIENTS[active.kind].name + '.';
-        player.setAttribute('aria-busy','false');
+        // The runtime already shows its own error and Retry. Keep that page
+        // interactive rather than covering it with a second launcher error.
+        finishLoading(active);
       }
     }
   });
