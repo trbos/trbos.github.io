@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101722">
   <meta name="description" content="Browser, PolyTrack, and Hx.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://browse--wordbuilder--675vggg6lnyg.code.run; base-uri 'none'; form-action 'none'; object-src 'none'">
-  <title>Browser &amp; PolyTrack</title>
+  <title>trbos</title>
   <link rel="icon" href="assets/icon.svg">
   <link rel="stylesheet" href="assets/site.css">
   <script src="assets/site.js" defer></script>
@@ -23,15 +23,13 @@
     </nav>
   </div></header>
   <main id="content" tabindex="-1">
-    <div class="title-band"><div class="container"><h1 id="page-title">Browser &amp; PolyTrack</h1></div></div>
+    <div id="title-band" class="title-band" hidden><div class="container"><h1 id="page-title">Hx</h1></div></div>
     <div id="home" class="container home-links">
       <a id="browser-link" class="destination" href="#/browser" data-browser-link>
-        <span class="destination-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><ellipse cx="16" cy="16" rx="5" ry="12"/><path d="M4 16h24"/></svg></span>
-        <span>Browser</span><svg class="arrow" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7"/></svg>
+        <span>Browser</span>
       </a>
       <a class="destination" href="polytrack/">
-        <span class="destination-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m7 28 4-24c7-4 12 5 18 0l-3 16c-6 5-11-4-18 0"/><path class="flag-fill" d="m11 4 5 1-.7 5-5-1zm9 4 5 1-.8 5-5-1zM9.5 14l5 1-.8 5-5-1zm10 4 5 1-.6 3-5-1z"/></svg></span>
-        <span>PolyTrack</span><svg class="arrow" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7"/></svg>
+        <span>PolyTrack</span>
       </a>
     </div>
     <section id="hx" class="container hx-content" aria-label="Hx bookmarklet" hidden>
@@ -63,6 +61,5 @@
     <div id="loading" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading Browser…</p></div>
     <div id="timeout" hidden><p role="status">This is taking longer than expected.</p><button id="retry" type="button">Retry</button></div>
   </section>
-  <footer id="footer">trbos.github.io</footer>
 </body>
 </html>

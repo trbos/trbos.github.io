@@ -3,10 +3,9 @@
   const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
   const POLYTRACK_URL = new URL('polytrack/', location.href).href;
   const content = document.getElementById('content');
-  const title = document.getElementById('page-title');
+  const titleBand = document.getElementById('title-band');
   const home = document.getElementById('home');
   const hx = document.getElementById('hx');
-  const footer = document.getElementById('footer');
   const player = document.getElementById('player');
   const frameHost = document.getElementById('frame-host');
   const loading = document.getElementById('loading');
@@ -107,10 +106,9 @@
       if (link.dataset.nav === page) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
     }
     document.body.dataset.page = page;
-    content.hidden = page === 'browser'; footer.hidden = page === 'browser'; player.hidden = page !== 'browser';
+    content.hidden = page === 'browser'; titleBand.hidden = page !== 'hx'; player.hidden = page !== 'browser';
     home.hidden = page !== 'home'; hx.hidden = page !== 'hx';
-    document.title = page === 'home' ? 'Browser & PolyTrack' : page === 'hx' ? 'Hx · trbos' : 'Browser';
-    title.textContent = page === 'hx' ? 'Hx' : 'Browser & PolyTrack';
+    document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : 'Browser';
     currentPage = page;
     if (page === 'browser') { openPlayer(); return; }
     clearPlayer();

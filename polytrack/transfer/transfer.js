@@ -80,12 +80,8 @@
     history.replaceState(null, '', GITHUB_ENTRY);
     if (skip) { continueWithoutImport(); return; }
     if (!token) {
-      status.textContent = 'Import saved progress from your previous addresses.';
-      button('Import saved progress', async () => {
-        try { await githubRecord('github-import-v1:pending', () => null); sourceVisit('launch'); }
-        catch (error) { fail(error); }
-      }, true);
-      button('Continue without import', continueWithoutImport);
+      await githubRecord('github-import-v1:pending', () => null);
+      sourceVisit('launch');
       return;
     }
     if (!/^[a-f0-9]{64}$/.test(token)) throw Error('The save transfer token is invalid.');
