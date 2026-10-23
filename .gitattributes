@@ -1,3 +1,2 @@
-assets/hx.txt -text
 assets/bookmarklets/*.txt -text -diff
 polytrack/** -text

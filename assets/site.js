@@ -3,7 +3,6 @@
   const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
   const POLYTRACK_URL = new URL('polytrack/',location.href).href;
   const TOOLS = {
-    hx:{file:'assets/hx.txt'},
     kahoot:{file:'assets/bookmarklets/kahoot.txt?v=2'},
     blooket:{file:'assets/bookmarklets/blooket.txt?v=2'},
     gimkit:{file:'assets/bookmarklets/gimkit.txt?v=3'}
