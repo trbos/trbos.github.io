@@ -1,0 +1,1007 @@
+import { PolyMod } from "../../../../PolyTypes.js";
+import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
+
+class PolyProcessing extends PolyMod {
+  preInit = () => {
+    const runtimeUrl = `${this.modBaseUrl}/${this.modVersion}/postfx_probe.js`;
+
+    if (!document.querySelector(`script[data-polyprocessing="runtime"]`)) {
+      const s = document.createElement("script");
+      s.type = "module";
+      s.dataset.polyprocessing = "runtime";
+      s.textContent = `import "${runtimeUrl}";`;
+      (document.head || document.documentElement).appendChild(s);
+    }
+  };
+
+  init = (pml) => {
+    this.pml = pml;
+
+    // Category in PML keybind UI
+    pml.registerBindCategory("PolyProcessing");
+
+    // Keybind callback (always fires, you decide when to act)
+    pml.registerKeybind(
+      "Toggle PolyProcessing GUI while holding shift",
+      "PolyProcessing_ToggleGUI",
+      "keydown",
+      "KeyP",
+      null,
+      (event) => {
+        // require shift to be held
+        if (!event.shiftKey) return;
+
+        event.preventDefault();
+        globalThis.__ppToggleGUI?.();
+      },
+    );
+  };
+
+  postInit = () => {
+    // Install GUI + Presets + Settings bridge
+    this.installGUI();
+    console.log("[PolyProcessing] Custom GUI installed");
+  };
+
+  // ------------------------------------------------------------
+  // Keybind: Shift+P fallback
+  // ------------------------------------------------------------
+  installKeybindFallback() {
+    if (globalThis.__ppGUIKeybindInstalled) return;
+    globalThis.__ppGUIKeybindInstalled = true;
+
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        // Shift+P (ignore typing in inputs)
+        const tag = (e.target && e.target.tagName) || "";
+        const typing =
+          tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable;
+
+        if (typing) return;
+
+        if (e.shiftKey && !e.ctrlKey && !e.altKey && e.code === "KeyP") {
+          e.preventDefault();
+          globalThis.__ppToggleGUI?.();
+        }
+      },
+      true,
+    );
+  }
+
+  // ------------------------------------------------------------
+  // GUI + preset logic
+  // ------------------------------------------------------------
+  installGUI() {
+    if (globalThis.__ppGUIInstalled) return;
+    globalThis.__ppGUIInstalled = true;
+
+    const SETTINGS_KEY = "polyprocessing_settings_v2";
+
+    const DEFAULT_SETTINGS = {
+      fxEnabled: true,
+
+      exposure: 1.0,
+      contrast: 1.0,
+      saturation: 1.0,
+      gamma: 1.0,
+
+      invert: false,
+
+      tint: [1.0, 1.0, 1.0],
+      tintStrength: 0.0,
+
+      debugCorner: false,
+
+      useLUT: false,
+      lutStrength: 1.0,
+
+      bloomEnabled: false,
+      bloomStrength: 0.35,
+      bloomThreshold: 1.0,
+      bloomRadius: 1.0,
+
+      tonemapper: "none",
+
+      grayscale: false,
+      bw: false,
+      bwThreshold: 0.5,
+    };
+
+    // Shared version counter used by runtime to detect updates
+    globalThis.__ppSettingsVersion = globalThis.__ppSettingsVersion || 0;
+
+    function injectCSS() {
+      if (document.querySelector("style[data-polyprocessing-gui]")) return;
+
+      const style = document.createElement("style");
+      style.dataset.polyprocessingGui = "1";
+      style.textContent = `
+    .pp-root {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 2147483647;
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .pp-panel {
+      width: min(860px, calc(100vw - 32px));
+      max-height: min(92vh, 900px);
+      overflow: auto;
+      background: rgba(20,20,24,0.98);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.55);
+      padding: 16px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .pp-section-title {
+      margin-top: 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 650;
+      opacity: 0.9;
+      letter-spacing: 0.2px;
+    }
+
+    /* THIS fixes your alignment */
+    .pp-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 88px;
+      align-items: center;
+      gap: 14px;
+      height: 30px;
+      margin: 6px 0;
+    }
+
+    .pp-label {
+      font-size: 13px;
+      opacity: 0.88;
+    }
+
+    .pp-value {
+      font-size: 12px;
+      opacity: 0.75;
+      text-align: right;
+      user-select: none;
+    }
+
+    .pp-slider {
+      width: 100%;
+      height: 18px;
+      margin: 0;
+    }
+
+    .pp-toggle {
+      justify-self: start;
+      margin: 0;
+      transform: translateY(1px);
+    }
+
+    .pp-select {
+      width: 100%;
+      height: 26px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+      font-size: 13px;
+    }
+
+    .pp-buttonrow {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pp-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .pp-btn:hover {
+      background: rgba(255,255,255,0.10);
+    }
+  `;
+      document.head.appendChild(style);
+    }
+
+    injectCSS();
+
+    const clamp01 = (x) => Math.max(0, Math.min(1, Number(x) || 0));
+    const safeNum = (x, fb) => {
+      const n = typeof x === "string" ? Number(x) : +x;
+      return Number.isFinite(n) ? n : fb;
+    };
+
+    function sanitizeSettings(raw) {
+      const s = { ...DEFAULT_SETTINGS, ...(raw || {}) };
+
+      s.fxEnabled = !!s.fxEnabled;
+      s.invert = !!s.invert;
+      s.debugCorner = !!s.debugCorner;
+
+      s.exposure = safeNum(s.exposure, 1.0);
+      s.contrast = safeNum(s.contrast, 1.0);
+      s.saturation = safeNum(s.saturation, 1.0);
+      s.gamma = safeNum(s.gamma, 1.0);
+
+      if (!Array.isArray(s.tint) || s.tint.length !== 3) s.tint = [1, 1, 1];
+      s.tint = [
+        safeNum(s.tint[0], 1.0),
+        safeNum(s.tint[1], 1.0),
+        safeNum(s.tint[2], 1.0),
+      ];
+      s.tintStrength = clamp01(safeNum(s.tintStrength, 0.0));
+
+      s.useLUT = !!s.useLUT;
+      s.lutStrength = clamp01(safeNum(s.lutStrength, 1.0));
+
+      s.tonemapper = String(s.tonemapper || "aces");
+
+      s.bloomEnabled = !!s.bloomEnabled;
+      s.bloomStrength = clamp01(safeNum(s.bloomStrength, 0.35));
+      s.bloomThreshold = safeNum(s.bloomThreshold, 1.0);
+      s.bloomRadius = safeNum(s.bloomRadius, 1.0);
+
+      s.grayscale = !!s.grayscale;
+      s.bw = !!s.bw;
+      s.bwThreshold = clamp01(safeNum(s.bwThreshold, 0.5));
+      return s;
+    }
+
+    function loadSettings() {
+      try {
+        const txt = localStorage.getItem(SETTINGS_KEY);
+        if (!txt) return { ...DEFAULT_SETTINGS };
+        const obj = JSON.parse(txt);
+        if (!obj || typeof obj !== "object" || Array.isArray(obj))
+          return { ...DEFAULT_SETTINGS };
+        return sanitizeSettings(obj);
+      } catch {
+        return { ...DEFAULT_SETTINGS };
+      }
+    }
+
+    function saveSettings(obj) {
+      const s = sanitizeSettings(obj);
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      } catch {}
+      return s;
+    }
+
+    function applySettingsPermanently(obj) {
+      const s = saveSettings(obj);
+      globalThis.__ppSettings = s;
+      globalThis.__ppSettingsVersion =
+        (globalThis.__ppSettingsVersion || 0) + 1;
+
+      // Also mirror into the legacy globals (so console tweaking still works)
+      globalThis.__ppMirrorSettingsToLegacyGlobals?.(s);
+
+      // Force one draw on next RAF if runtime exposed it
+      globalThis.__ppRequestOneFrame?.();
+
+      return s;
+    }
+
+    // Expose API for runtime/mod dev console
+    globalThis.__ppGetSavedSettings = () => loadSettings();
+    globalThis.__ppSetSavedSettings = (s) => applySettingsPermanently(s);
+    globalThis.__ppResetSavedSettings = () =>
+      applySettingsPermanently(DEFAULT_SETTINGS);
+
+    // ------------------------------------------------------------
+    // Preset format: zip with settings.json (+ optional lut.png)
+    // Import = PERMANENTLY apply settings (no "temporary override")
+    // ------------------------------------------------------------
+    async function exportPreset() {
+      const zip = new JSZip();
+
+      const settings = loadSettings();
+      const payload = {
+        format: "polypreset",
+        version: 2,
+        mod: "PolyProcessing",
+        exportedAt: new Date().toISOString(),
+        settings,
+      };
+
+      zip.file("settings.json", JSON.stringify(payload, null, 2));
+
+      // include lut if runtime has one
+      const lutBytes = await globalThis.__ppExportLUTBytes?.();
+      if (lutBytes && lutBytes.byteLength > 0) {
+        zip.file("lut.png", lutBytes);
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+
+      const ts = new Date()
+        .toISOString()
+        .replaceAll(":", "-")
+        .replaceAll(".", "-");
+      a.download = `PolyProcessing_${ts}.polypreset`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      console.log("[PolyProcessing] Preset exported");
+    }
+
+    async function pickFile(accept) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = accept;
+      input.style.display = "none";
+      document.body.appendChild(input);
+
+      const file = await new Promise((resolve) => {
+        input.onchange = () => resolve(input.files?.[0] || null);
+        input.click();
+      });
+
+      document.body.removeChild(input);
+      return file;
+    }
+
+    async function importPreset() {
+      const file = await pickFile(".polypreset,application/zip");
+      if (!file) return;
+
+      const buf = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(buf);
+
+      const txt = await zip.file("settings.json")?.async("string");
+      if (!txt) throw new Error("Invalid preset: missing settings.json");
+
+      const parsed = JSON.parse(txt);
+      const s = parsed?.settings;
+      if (!s || typeof s !== "object")
+        throw new Error("Invalid preset settings");
+
+      // Apply settings permanently
+      const applied = applySettingsPermanently(s);
+
+      // LUT optional
+      const lutFile = zip.file("lut.png");
+      if (lutFile) {
+        const lutBytes = await lutFile.async("uint8array");
+        await globalThis.__ppImportLUTBytes?.(lutBytes);
+      }
+
+      console.log("[PolyProcessing] Imported preset:", file.name, applied);
+      refreshUIFromSettings();
+    }
+
+    async function clearPresetAndReset() {
+      // “clear preset” in this new system means:
+      // - reset settings to defaults (permanent)
+      // - clear LUT
+      applySettingsPermanently(DEFAULT_SETTINGS);
+      await globalThis.__ppClearLUT?.();
+      refreshUIFromSettings();
+      console.log("[PolyProcessing] Cleared preset (reset to defaults)");
+    }
+
+    // ------------------------------------------------------------
+    // Build GUI
+    // ------------------------------------------------------------
+    const root = document.createElement("div");
+    root.id = "polyprocessing_gui_root";
+    root.className = "pp-root";
+
+    const panel = document.createElement("div");
+    panel.className = "pp-panel";
+
+    root.appendChild(panel);
+    document.body.appendChild(root);
+
+    function hRow(title, subtitle) {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = `
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      `;
+
+      const left = document.createElement("div");
+      left.innerHTML = `
+        <div style="font-size: 18px; font-weight: 650;">${title}</div>
+        <div style="opacity: 0.75; font-size: 13px; margin-top: 2px;">${subtitle || ""}</div>
+      `;
+
+      const right = document.createElement("div");
+      right.style.cssText = "display:flex; gap:8px; align-items:center;";
+
+      wrap.appendChild(left);
+      wrap.appendChild(right);
+      return { wrap, right };
+    }
+
+    function btn(label, onClick) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = label;
+      b.className = "pp-btn";
+      b.onmouseenter = () => (b.style.background = "rgba(255,255,255,0.10)");
+      b.onmouseleave = () => (b.style.background = "rgba(255,255,255,0.06)");
+      b.onclick = onClick;
+      return b;
+    }
+
+    function sectionTitle(text) {
+      const d = document.createElement("div");
+      d.textContent = text;
+      d.style.cssText = `
+        margin-top: 14px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 650;
+        opacity: 0.9;
+        letter-spacing: 0.2px;
+      `;
+      return d;
+    }
+
+    function row() {
+      const d = document.createElement("div");
+      d.className = "pp-row";
+      return d;
+    }
+
+    function labelCell(text) {
+      const d = document.createElement("div");
+      d.className = "pp-label";
+      d.textContent = text;
+      return d;
+    }
+
+    function valueCell() {
+      const d = document.createElement("div");
+      d.className = "pp-value";
+      return d;
+    }
+
+    function mkCheckbox(get, set) {
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.className = "pp-toggle";
+      input.checked = !!get();
+
+      input.onchange = () => {
+        set(!!input.checked);
+        flush();
+      };
+      return input;
+    }
+
+    function mkSelect(options, get, set) {
+      const sel = document.createElement("select");
+      sel.className = "pp-select";
+
+      for (const { title, value } of options) {
+        const o = document.createElement("option");
+        o.value = value;
+        o.textContent = title;
+        sel.appendChild(o);
+      }
+
+      sel.value = String(get());
+      sel.onchange = () => {
+        set(sel.value);
+        flush();
+      };
+      return sel;
+    }
+
+    function mkSlider(min, max, step, get, set) {
+      const input = document.createElement("input");
+      input.type = "range";
+      input.className = "pp-slider";
+      input.min = String(min);
+      input.max = String(max);
+      input.step = String(step);
+      input.value = String(get());
+      input.style.width = "100%";
+      input.oninput = () => {
+        set(Number(input.value));
+        flush(false); // live apply without saving spamming too hard
+        refreshValueReadout();
+      };
+      input.onchange = () => {
+        flush(true);
+      };
+      return input;
+    }
+
+    // live-edit buffer
+    let current = loadSettings();
+    let saveTimer = null;
+
+    function flush(save = true) {
+      // Apply in runtime immediately
+      globalThis.__ppSettings = sanitizeSettings(current);
+      globalThis.__ppSettingsVersion =
+        (globalThis.__ppSettingsVersion || 0) + 1;
+
+      globalThis.__ppMirrorSettingsToLegacyGlobals?.(globalThis.__ppSettings);
+      globalThis.__ppRequestOneFrame?.();
+
+      if (!save) return;
+
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        applySettingsPermanently(current);
+      }, 120);
+    }
+
+    function refreshValueReadout() {
+      // updated later by storing references
+      for (const fn of valueRefreshFns) fn();
+    }
+
+    function refreshUIFromSettings() {
+      current = loadSettings();
+      for (const fn of uiRefreshFns) fn();
+      flush(false);
+      refreshValueReadout();
+    }
+
+    const uiRefreshFns = [];
+    const valueRefreshFns = [];
+
+    // Header
+    {
+      const { wrap, right } = hRow(
+        "PolyProcessing",
+        "Shift+P to open/close • Presets permanently apply",
+      );
+
+      right.appendChild(
+        btn("Import Preset", async () => {
+          try {
+            await importPreset();
+          } catch (e) {
+            console.warn("[PolyProcessing] Import failed:", e);
+            alert(`Preset import failed:\n${String(e?.message || e)}`);
+          }
+        }),
+      );
+
+      right.appendChild(
+        btn("Export Preset", async () => {
+          try {
+            await exportPreset();
+          } catch (e) {
+            console.warn("[PolyProcessing] Export failed:", e);
+            alert(`Preset export failed:\n${String(e?.message || e)}`);
+          }
+        }),
+      );
+
+      right.appendChild(
+        btn("Reset Defaults", async () => {
+          await clearPresetAndReset();
+        }),
+      );
+
+      right.appendChild(
+        btn("Close", () => {
+          root.style.display = "none";
+        }),
+      );
+
+      panel.appendChild(wrap);
+    }
+
+    panel.appendChild(document.createElement("hr")).style.cssText =
+      "border:0;border-top:1px solid rgba(255,255,255,0.10);margin:10px 0;";
+
+    // Section: General
+    panel.appendChild(sectionTitle("General"));
+
+    // Enabled
+    {
+      const r = row();
+      r.appendChild(labelCell("Enabled"));
+      const c = mkCheckbox(
+        () => current.fxEnabled,
+        (v) => (current.fxEnabled = v),
+      );
+      r.appendChild(c);
+      const v = valueCell();
+      v.textContent = "";
+      r.appendChild(v);
+      uiRefreshFns.push(() => (c.checked = !!current.fxEnabled));
+      panel.appendChild(r);
+    }
+
+    // Tonemapper
+    {
+      const r = row();
+      r.appendChild(labelCell("Tonemapper"));
+      const sel = mkSelect(
+        [
+          { title: "ACES", value: "aces" },
+          { title: "Hable (Uncharted 2)", value: "hable" },
+          { title: "Reinhard", value: "reinhard" },
+          { title: "None", value: "none" },
+        ],
+        () => current.tonemapper,
+        (v) => (current.tonemapper = v),
+      );
+      r.appendChild(sel);
+      const v = valueCell();
+      v.textContent = String(current.tonemapper);
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (sel.value = String(current.tonemapper)));
+      valueRefreshFns.push(() => (v.textContent = String(current.tonemapper)));
+
+      panel.appendChild(r);
+    }
+
+    // Exposure/Contrast/Saturation/Gamma
+    function addFloatSlider(name, min, max, step, get, set) {
+      const r = row();
+      r.appendChild(labelCell(name));
+      const slider = mkSlider(min, max, step, get, set);
+      r.appendChild(slider);
+      const v = valueCell();
+      r.appendChild(v);
+
+      const refresh = () => {
+        slider.value = String(get());
+        v.textContent = String(get().toFixed(3));
+      };
+      uiRefreshFns.push(refresh);
+      valueRefreshFns.push(() => (v.textContent = String(get().toFixed(3))));
+      refresh();
+
+      panel.appendChild(r);
+    }
+
+    addFloatSlider(
+      "Exposure",
+      0.0,
+      3.0,
+      0.01,
+      () => current.exposure,
+      (x) => (current.exposure = x),
+    );
+
+    addFloatSlider(
+      "Contrast",
+      0.0,
+      3.0,
+      0.01,
+      () => current.contrast,
+      (x) => (current.contrast = x),
+    );
+
+    addFloatSlider(
+      "Saturation",
+      0.0,
+      3.0,
+      0.01,
+      () => current.saturation,
+      (x) => (current.saturation = x),
+    );
+
+    addFloatSlider(
+      "Gamma",
+      0.1,
+      4.0,
+      0.01,
+      () => current.gamma,
+      (x) => (current.gamma = x),
+    );
+
+    // Invert
+    {
+      const r = row();
+      r.appendChild(labelCell("Invert"));
+      const c = mkCheckbox(
+        () => current.invert,
+        (v) => (current.invert = v),
+      );
+      r.appendChild(c);
+      const v = valueCell();
+      v.textContent = current.invert ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.invert));
+      valueRefreshFns.push(
+        () => (v.textContent = current.invert ? "On" : "Off"),
+      );
+      panel.appendChild(r);
+    }
+
+    // Section: Tint
+    panel.appendChild(sectionTitle("Tint"));
+
+    addFloatSlider(
+      "Tint Strength",
+      0.0,
+      1.0,
+      0.01,
+      () => current.tintStrength,
+      (x) => (current.tintStrength = x),
+    );
+
+    // Tint preset select
+    {
+      const presets = [
+        { title: "None", value: "[1,1,1]" },
+        { title: "Warm", value: "[1.1,1.0,0.9]" },
+        { title: "Cool", value: "[0.9,1.0,1.1]" },
+        { title: "Purple", value: "[0.6,0.0,1.0]" },
+        { title: "Green", value: "[0.9,1.1,0.9]" },
+      ];
+
+      const r = row();
+      r.appendChild(labelCell("Tint Preset"));
+
+      const sel = mkSelect(
+        presets,
+        () => JSON.stringify(current.tint),
+        (val) => {
+          try {
+            const arr = JSON.parse(val);
+            if (Array.isArray(arr) && arr.length === 3) current.tint = arr;
+          } catch {}
+        },
+      );
+
+      r.appendChild(sel);
+
+      const v = valueCell();
+      v.textContent = JSON.stringify(current.tint);
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (sel.value = JSON.stringify(current.tint)));
+      valueRefreshFns.push(
+        () => (v.textContent = JSON.stringify(current.tint)),
+      );
+
+      panel.appendChild(r);
+    }
+
+    // Section: LUT
+    panel.appendChild(sectionTitle("LUT"));
+
+    {
+      const r = row();
+      r.appendChild(labelCell("Use LUT"));
+      const c = mkCheckbox(
+        () => current.useLUT,
+        (v) => (current.useLUT = v),
+      );
+      r.appendChild(c);
+      const v = valueCell();
+      v.textContent = current.useLUT ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.useLUT));
+      valueRefreshFns.push(
+        () => (v.textContent = current.useLUT ? "On" : "Off"),
+      );
+      panel.appendChild(r);
+    }
+
+    addFloatSlider(
+      "LUT Strength",
+      0.0,
+      1.0,
+      0.01,
+      () => current.lutStrength,
+      (x) => (current.lutStrength = x),
+    );
+
+    {
+      const r = row();
+      r.appendChild(labelCell("LUT File"));
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "display:flex; gap:8px; align-items:center;";
+      wrap.appendChild(
+        btn("Pick LUT", async () => {
+          await globalThis.__ppPickLUT?.();
+          globalThis.__ppRequestOneFrame?.();
+        }),
+      );
+      wrap.appendChild(
+        btn("Clear LUT", async () => {
+          await globalThis.__ppClearLUT?.();
+          globalThis.__ppRequestOneFrame?.();
+        }),
+      );
+      r.appendChild(wrap);
+
+      const v = valueCell();
+      v.textContent = "";
+      r.appendChild(v);
+
+      panel.appendChild(r);
+    }
+
+    // Section: Bloom
+    panel.appendChild(sectionTitle("Bloom"));
+
+    {
+      const r = row();
+      r.appendChild(labelCell("Bloom Enabled"));
+      const c = mkCheckbox(
+        () => current.bloomEnabled,
+        (v) => (current.bloomEnabled = v),
+      );
+      r.appendChild(c);
+      const v = valueCell();
+      v.textContent = current.bloomEnabled ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.bloomEnabled));
+      valueRefreshFns.push(
+        () => (v.textContent = current.bloomEnabled ? "On" : "Off"),
+      );
+      panel.appendChild(r);
+    }
+
+    addFloatSlider(
+      "Bloom Strength",
+      0.0,
+      1.0,
+      0.01,
+      () => current.bloomStrength,
+      (x) => (current.bloomStrength = x),
+    );
+
+    addFloatSlider(
+      "Bloom Threshold",
+      0.0,
+      3.0,
+      0.01,
+      () => current.bloomThreshold,
+      (x) => (current.bloomThreshold = x),
+    );
+
+    addFloatSlider(
+      "Bloom Radius",
+      0.0,
+      3.0,
+      0.01,
+      () => current.bloomRadius,
+      (x) => (current.bloomRadius = x),
+    );
+
+    panel.appendChild(sectionTitle("B&W / Greyscale"));
+
+    // Greyscale toggle
+    {
+      const r = row();
+      r.appendChild(labelCell("Greyscale"));
+      const c = mkCheckbox(
+        () => current.grayscale,
+        (v) => {
+          current.grayscale = v;
+          if (v) current.bw = false;
+        },
+      );
+      r.appendChild(c);
+
+      const v = valueCell();
+      v.textContent = current.grayscale ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.grayscale));
+      valueRefreshFns.push(
+        () => (v.textContent = current.grayscale ? "On" : "Off"),
+      );
+      panel.appendChild(r);
+    }
+
+    // B&W toggle
+    {
+      const r = row();
+      r.appendChild(labelCell("B&W (Threshold)"));
+      const c = mkCheckbox(
+        () => current.bw,
+        (v) => {
+          current.bw = v;
+          if (v) current.grayscale = false;
+        },
+      );
+      r.appendChild(c);
+
+      const v = valueCell();
+      v.textContent = current.bw ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.bw));
+      valueRefreshFns.push(() => (v.textContent = current.bw ? "On" : "Off"));
+      panel.appendChild(r);
+    }
+
+    // Threshold slider
+    addFloatSlider(
+      "B&W Threshold",
+      0.0,
+      1.0,
+      0.01,
+      () => current.bwThreshold,
+      (x) => (current.bwThreshold = x),
+    );
+
+    // Debug corner
+    panel.appendChild(sectionTitle("Debug"));
+
+    {
+      const r = row();
+      r.appendChild(labelCell("Debug Corner"));
+      const c = mkCheckbox(
+        () => current.debugCorner,
+        (v) => (current.debugCorner = v),
+      );
+      r.appendChild(c);
+      const v = valueCell();
+      v.textContent = current.debugCorner ? "On" : "Off";
+      r.appendChild(v);
+
+      uiRefreshFns.push(() => (c.checked = !!current.debugCorner));
+      valueRefreshFns.push(
+        () => (v.textContent = current.debugCorner ? "On" : "Off"),
+      );
+      panel.appendChild(r);
+    }
+
+    // closing behavior
+    root.addEventListener("click", (e) => {
+      if (e.target === root) root.style.display = "none";
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && root.style.display !== "none") {
+        root.style.display = "none";
+      }
+    });
+
+    // Public open/close
+    globalThis.__ppToggleGUI = () => {
+      if (root.style.display === "none") {
+        refreshUIFromSettings();
+        root.style.display = "flex";
+      } else {
+        root.style.display = "none";
+      }
+    };
+
+    // initial apply on load
+    applySettingsPermanently(loadSettings());
+  }
+}
+
+export let polyMod = new PolyProcessing();

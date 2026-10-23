@@ -1,0 +1,90 @@
+{
+  "textureLimit": 1024,
+  "models": [
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/audir8.glb",
+      "originalBytes": 3039280,
+      "bytes": 3004468
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/countach.glb",
+      "originalBytes": 3220388,
+      "bytes": 3182140
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/cybertruck.glb",
+      "originalBytes": 131716,
+      "bytes": 130800
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/driftcar.glb",
+      "originalBytes": 8598848,
+      "bytes": 7740172
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/koenigsegg.glb",
+      "originalBytes": 1201060,
+      "bytes": 1198852
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/mclaren.glb",
+      "originalBytes": 37243228,
+      "bytes": 18849356
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/mclarenmp4_5.glb",
+      "originalBytes": 96324656,
+      "bytes": 14778772
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/nissan.glb",
+      "originalBytes": 18995388,
+      "bytes": 18845132
+    },
+    {
+      "path": "mods/library/coolcars/1.0.4/assets/optimized/svj.glb",
+      "originalBytes": 5150408,
+      "bytes": 5101588
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/checkpoint.glb",
+      "originalBytes": 75252,
+      "bytes": 74724
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/dababy.glb",
+      "originalBytes": 7014276,
+      "bytes": 2906584
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/golfcart.glb",
+      "originalBytes": 400192,
+      "bytes": 399532
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/hitbox.glb",
+      "originalBytes": 85152,
+      "bytes": 84184
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/legocar.glb",
+      "originalBytes": 13473500,
+      "bytes": 13443472
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/minecart.glb",
+      "originalBytes": 96900,
+      "bytes": 95252
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/octane.glb",
+      "originalBytes": 1290040,
+      "bytes": 1288416
+    },
+    {
+      "path": "mods/library/goofycars/1.0.8/assets/optimized/wireframe.glb",
+      "originalBytes": 1407304,
+      "bytes": 1406056
+    }
+  ]
+}

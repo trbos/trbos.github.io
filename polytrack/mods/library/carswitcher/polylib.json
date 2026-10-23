@@ -1,0 +1,17 @@
+{
+  "shortdesc": "Adds a button for switching cars along with a few built-ins.",
+  "changelogs": {
+    "1.0.1": [
+      "Added cars (i think)"
+    ],
+    "1.0.2": [
+      "Port to 0.5.1"
+    ],
+    "1.0.3": [
+      "Fix sound path issues"
+    ],
+    "1.0.4": [
+      "Port to 0.5.2"
+    ]
+  }
+}

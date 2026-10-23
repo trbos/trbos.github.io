@@ -1,0 +1,14 @@
+{
+  "polymod": {
+    "name": "PolyDip--",
+    "id": "pdip",
+    "author": "DoraChad + Orangy",
+    "targets": [
+      "0.5.1",
+      "0.6.0",
+      "0.6.3"
+    ],
+    "main": "main.mod.js"
+  },
+  "dependencies": []
+}

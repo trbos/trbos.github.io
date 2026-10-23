@@ -1,0 +1,10 @@
+{
+    "polymod": {
+        "name": "PolyTrackModLoader API",
+        "id": "pml-api",
+        "author": "PolyTrackMods Team",
+        "targets": ["0.5.0"],
+        "main": "pml-api.mod.js"
+    },
+    "dependencies": []
+}

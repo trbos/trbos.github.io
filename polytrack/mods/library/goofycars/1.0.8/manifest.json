@@ -1,0 +1,19 @@
+{
+  "polymod": {
+    "name": "Goofy Cars",
+    "id": "goofycars",
+    "author": "CRJakob",
+    "targets": [
+      "0.5.1",
+      "0.6.0",
+      "0.6.3"
+    ],
+    "main": "main.mod.js"
+  },
+  "dependencies": [
+    {
+      "id": "carswitcher",
+      "version": "1.0.5"
+    }
+  ]
+}

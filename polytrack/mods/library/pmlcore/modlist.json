@@ -1,0 +1,115 @@
+{
+  "polyprocessing": {
+    "url": "./mods/library/polyprocessing",
+    "name": "PolyProcessing",
+    "author": "Jakob",
+    "tags": [
+      "Graphical"
+    ]
+  },
+  "xenon": {
+    "url": "./mods/library/xenon",
+    "name": "Xenon",
+    "author": "Jakob",
+    "tags": [
+      "Graphical"
+    ]
+  },
+  "husplits": {
+    "url": "./mods/library/husplits",
+    "name": "Heads Up Splits",
+    "author": "Orangy",
+    "tags": [
+      "UI"
+    ]
+  },
+  "inputoverlay": {
+    "url": "./mods/library/inputoverlay",
+    "name": "Input Overlay",
+    "author": "Jakob",
+    "tags": [
+      "UI"
+    ]
+  },
+  "noitalics": {
+    "url": "./mods/library/noitalics",
+    "name": "No Italics",
+    "author": "Orangy",
+    "tags": [
+      "UI"
+    ]
+  },
+  "ghosttoggle": {
+    "url": "./mods/library/ghosttoggle",
+    "name": "Mid Run Ghost Toggle",
+    "author": "Cwcinc + Orangy",
+    "tags": [
+      "Car"
+    ]
+  },
+  "pmlcore": {
+    "url": "./mods/library/pmlcore",
+    "name": "PML Core",
+    "author": "Orangy",
+    "tags": [
+      "Other"
+    ]
+  },
+  "carswitcher": {
+    "url": "./mods/library/carswitcher",
+    "name": "Car Switcher",
+    "author": "Orangy",
+    "tags": [
+      "Car",
+      "UI"
+    ]
+  },
+  "coolcars": {
+    "url": "./mods/library/coolcars",
+    "name": "Cool Cars",
+    "author": "CRJakob",
+    "tags": [
+      "Car"
+    ]
+  },
+  "goofycars": {
+    "url": "./mods/library/goofycars",
+    "name": "Goofy Cars",
+    "author": "CRJakob",
+    "tags": [
+      "Car"
+    ]
+  },
+  "cinema": {
+    "url": "./mods/library/cinema",
+    "name": "PolyCinema",
+    "author": "Hero, Jakob",
+    "tags": [
+      "Graphical"
+    ]
+  },
+  "polydebug": {
+    "url": "./mods/library/polydebug",
+    "name": "PolyDebug",
+    "author": "Lockheed SR-71 Blackbird",
+    "tags": [
+      "Other"
+    ]
+  },
+  "pdip": {
+    "url": "./mods/library/pdip",
+    "name": "PolyDip--",
+    "author": "DoraChad + Orangy",
+    "tags": [
+      "Gameplay"
+    ]
+  },
+  "pmlapi": {
+    "url": "./mods/library/pmlapi",
+    "name": "PML API",
+    "author": "PolyTrackMods Team",
+    "tags": [
+      "Other"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "baseUrl": ".",
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "outDir": "./dist",
+        "paths": {
+            "../../../PolyTypes.js": [
+                "types/PolyModLoader.0.5.0.ts"
+            ]
+        }
+    },
+    "include": ["0.0.0/**/*.ts"]
+}

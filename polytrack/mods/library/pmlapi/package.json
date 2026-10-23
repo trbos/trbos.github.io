@@ -1,0 +1,34 @@
+{
+    "name": "pml-api",
+    "version": "0.0.0",
+    "description": "A lightweight, modular framework that provides core hooks, utilities, and extension points for creating mods in Polytrack. It serves as the foundation for mod development by exposing safe access to game systems, lifecycle events, and custom content registration.",
+    "type": "module",
+    "scripts": {
+        "format": "prettier --write .",
+        "lint": "eslint .",
+        "build:pml:types": "node ./scripts/build-pml-types.js",
+        "build": "tsc && rimraf ./dist/types && node ./scripts/copy-static.js && node ./scripts/bundle-dist.js --minify",
+        "build:debug": "tsc && rimraf ./dist/types && node ./scripts/copy-static.js --debug && node ./scripts/bundle-dist.js",
+        "build:all": "pnpm build && pnpm build:debug"
+    },
+    "keywords": [
+        "polytrack",
+        "modding",
+        "api",
+        "framework",
+        "game-mods"
+    ],
+    "author": "PolyTrackMods Team",
+    "license": "MIT",
+    "packageManager": "pnpm@10.11.0",
+    "devDependencies": {
+        "@eslint/js": "^9.31.0",
+        "eslint": "^9.31.0",
+        "globals": "^16.3.0",
+        "prettier": "3.6.2"
+    },
+    "dependencies": {
+        "esbuild": "^0.25.6",
+        "rimraf": "^6.0.1"
+    }
+}

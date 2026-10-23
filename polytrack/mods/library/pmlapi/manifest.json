@@ -1,0 +1,10 @@
+{
+  "name": "PML API",
+  "author": "PolyTrackMods Team",
+  "id": "pmlapi",
+  "latest": {
+    "0.5.0": "0.0.0",
+    "0.6.0": "0.0.0",
+    "0.6.3": "0.0.0"
+  }
+}

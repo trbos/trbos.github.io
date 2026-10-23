@@ -1,0 +1,10 @@
+{
+  "name": "PolyCinema",
+  "author": "Hero, Jakob",
+  "id": "cinema",
+  "latest": {
+    "0.5.2": "2.0.0",
+    "0.6.0": "2.0.0",
+    "0.6.3": "2.0.0"
+  }
+}

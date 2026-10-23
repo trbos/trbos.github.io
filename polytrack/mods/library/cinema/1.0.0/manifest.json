@@ -1,0 +1,17 @@
+{
+  "polymod": {
+    "name": "PolyCinema",
+    "id": "cinema",
+    "author": "Hero, Jakob",
+    "targets": [
+      "0.5.2"
+    ],
+    "main": "main.mod.js"
+  },
+  "dependencies": [
+    {
+      "id": "polyprocessing",
+      "version": "2.0.1"
+    }
+  ]
+}

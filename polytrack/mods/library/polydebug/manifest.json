@@ -1,0 +1,10 @@
+{
+  "name": "PolyDebug",
+  "author": "Lockheed SR-71 Blackbird",
+  "id": "polydebug",
+  "latest": {
+    "0.5.0": "0.2.0",
+    "0.6.0": "0.2.0",
+    "0.6.3": "0.2.0"
+  }
+}

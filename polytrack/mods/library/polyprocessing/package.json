@@ -1,0 +1,15 @@
+{
+  "name": "polyprocessing",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild 4.0.0/main.mod.ts --bundle=false --format=esm --target=es2022 --outfile=4.0.0/main.mod.js",
+    "typecheck": "tsc -p 4.0.0/tsconfig.json --noEmit && tsc -p 5.0.0/tsconfig.json --noEmit",
+    "watch": "esbuild 4.0.0/main.mod.ts --bundle=false --format=esm --target=es2022 --outfile=4.0.0/main.mod.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

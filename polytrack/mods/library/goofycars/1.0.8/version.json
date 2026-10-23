@@ -1,0 +1,14 @@
+{
+  "targets": [
+    "0.5.1",
+    "0.6.0",
+    "0.6.3"
+  ],
+  "dependencies": [
+    {
+      "id": "carswitcher",
+      "version": "1.0.5"
+    }
+  ],
+  "main": "main.mod.js"
+}

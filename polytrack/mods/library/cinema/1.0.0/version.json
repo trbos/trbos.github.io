@@ -1,0 +1,12 @@
+{
+  "targets": [
+    "0.5.2"
+  ],
+  "dependencies": [
+    {
+      "id": "polyprocessing",
+      "version": "2.0.1"
+    }
+  ],
+  "main": "main.mod.js"
+}
