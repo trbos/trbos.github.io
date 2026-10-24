@@ -5,27 +5,14 @@
     Object.freeze({"id":"geometry-dash","name":"Geometry Dash","url":"games/geometry-dash/","trustedPlayer":true}),
     Object.freeze({"id":"jambling","name":"Jambling","url":"https://snoozingmax.github.io/Jambling/","external":true}),
     Object.freeze({"id":"block-blast","name":"Block Blast","url":"games/block-blast/","trustedPlayer":true}),
-    Object.freeze({"id":"456-challenge","name":"456 Challenge","url":"games/456-challenge/","trustedPlayer":true}),
-    Object.freeze({"id":"chicken","name":"Chicken","url":"games/chicken/","trustedPlayer":true}),
     Object.freeze({"id":"cs-1-6","name":"CS 1.6","url":"games/cs-1-6/","trustedPlayer":true}),
-    Object.freeze({"id":"eat-blobs-simulator","name":"Eat Blobs Simulator","url":"games/eat-blobs-simulator/","trustedPlayer":true}),
     Object.freeze({"id":"gd-3d","name":"Geometry Dash 3D","url":"games/gd-3d/","trustedPlayer":true}),
     Object.freeze({"id":"gvibes","name":"Geometry Vibes","url":"games/gvibes/","trustedPlayer":true}),
     Object.freeze({"id":"holeio","name":"Hole.io","url":"games/holeio/","trustedPlayer":true}),
     Object.freeze({"id":"kart-bros","name":"Kart Bros","url":"games/kart-bros/","trustedPlayer":true}),
-    Object.freeze({"id":"katnap-survival","name":"Katnap Survival","url":"games/katnap-survival/","trustedPlayer":true}),
-    Object.freeze({"id":"money-rolller","name":"Money Roller","url":"games/money-rolller/","trustedPlayer":true}),
-    Object.freeze({"id":"obby-99-will-lose","name":"Obby 99 Will Lose","url":"games/obby-99-will-lose/","trustedPlayer":true}),
-    Object.freeze({"id":"obby-ambot","name":"Obby Ambot","url":"games/obby-ambot/","trustedPlayer":true}),
-    Object.freeze({"id":"paint-map-simulator","name":"Paint Map Simulator","url":"games/paint-map-simulator/","trustedPlayer":true}),
     Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/","trustedPlayer":true}),
-    Object.freeze({"id":"sky-race-3d","name":"Sky Race 3d","url":"games/sky-race-3d/","trustedPlayer":true}),
     Object.freeze({"id":"sniper-shot","name":"Sniper Shot","url":"games/sniper-shot/","trustedPlayer":true}),
-    Object.freeze({"id":"stickfun","name":"Stickfun","url":"games/stickfun/","trustedPlayer":true}),
-    Object.freeze({"id":"tall-io","name":"Tall.io","url":"games/tall-io/","trustedPlayer":true}),
-    Object.freeze({"id":"tap-goal","name":"Tap Goal","url":"games/tap-goal/","trustedPlayer":true}),
-    Object.freeze({"id":"time-shooter-3-swat","name":"Time Shooter 3 SWAT","url":"games/time-shooter-3-swat/","trustedPlayer":true}),
-    Object.freeze({"id":"untwist-road","name":"Untwist Road","url":"games/untwist-road/","trustedPlayer":true})
+    Object.freeze({"id":"time-shooter-3-swat","name":"Time Shooter 3 SWAT","url":"games/time-shooter-3-swat/","trustedPlayer":true})
   ]);
   const grid = document.getElementById('games');
   const player = document.getElementById('game-player');
