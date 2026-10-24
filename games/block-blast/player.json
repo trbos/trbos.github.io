@@ -6,7 +6,7 @@
     "width": 600,
     "height": 1000
   },
-  "runtimeHtml": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n  <title>Block Blast</title>\n  <link rel=\"stylesheet\" href=\"player.css?v=0608f7cead8d\">\n  <script src=\"player.js?v=6a6f79985640\" defer></script>\n</head>\n<body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Block Blast\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body>\n</html>\n",
+  "runtimeHtml": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n  <title>Block Blast</title>\n  <link rel=\"stylesheet\" href=\"player.css?v=0608f7cead8d\">\n  <script src=\"player.js?v=768ced895da8\" defer></script>\n</head>\n<body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Block Blast\"></canvas><p id=\"status\" role=\"status\">Loading\u2026</p></body>\n</html>\n",
   "assets": {
     "loader": {
       "path": "Build/BlockBlast1.1-8.loader.js",
@@ -28,5 +28,6 @@
       "bytes": 7531483,
       "sha256": "f503ce2213a25ef9855fb4969a4e3bb45f472eb1d0a6f8c9878b3cfee799ee98"
     }
-  }
+  },
+  "startupTimeoutMs": 120000
 }

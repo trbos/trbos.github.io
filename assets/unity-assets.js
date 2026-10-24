@@ -2,7 +2,9 @@
   'use strict';
   const id=document.currentScript.dataset.game,channel=new MessageChannel(),urls=[];
   const ready=new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>{channel.port1.close();reject(Error('Game assets unavailable.'));},25000);
+    const configured=Number(document.currentScript.dataset.timeout);
+    const timeout=Number.isSafeInteger(configured)&&configured>=30000&&configured<=120000?configured:25000;
+    const timer=setTimeout(()=>{channel.port1.close();reject(Error('Game assets unavailable.'));},timeout);
     channel.port1.onmessage=event=>{
       clearTimeout(timer);channel.port1.close();
       try{

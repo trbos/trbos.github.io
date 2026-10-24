@@ -4,15 +4,8 @@
     Object.freeze({"id":"hextris","name":"Hextris","url":"games/hextris/","trustedPlayer":true}),
     Object.freeze({"id":"geometry-dash","name":"Geometry Dash","url":"games/geometry-dash/","trustedPlayer":true}),
     Object.freeze({"id":"jambling","name":"Jambling","url":"https://snoozingmax.github.io/Jambling/","external":true}),
-    Object.freeze({"id":"block-blast","name":"Block Blast","url":"games/block-blast/","trustedPlayer":true}),
-    Object.freeze({"id":"cs-1-6","name":"CS 1.6","url":"games/cs-1-6/","trustedPlayer":true}),
-    Object.freeze({"id":"gd-3d","name":"Geometry Dash 3D","url":"games/gd-3d/","trustedPlayer":true}),
-    Object.freeze({"id":"gvibes","name":"Geometry Vibes","url":"games/gvibes/","trustedPlayer":true}),
-    Object.freeze({"id":"holeio","name":"Hole.io","url":"games/holeio/","trustedPlayer":true}),
-    Object.freeze({"id":"kart-bros","name":"Kart Bros","url":"games/kart-bros/","trustedPlayer":true}),
+    Object.freeze({"id":"block-blast","name":"Block Blast","url":"games/block-blast/","trustedPlayer":true,"startup":"heavy"}),
     Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/","trustedPlayer":true}),
-    Object.freeze({"id":"sniper-shot","name":"Sniper Shot","url":"games/sniper-shot/","trustedPlayer":true}),
-    Object.freeze({"id":"time-shooter-3-swat","name":"Time Shooter 3 SWAT","url":"games/time-shooter-3-swat/","trustedPlayer":true}),
     Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true}),
     Object.freeze({"id":"eaglercraft","name":"Eaglercraft","url":"games/eaglercraft/","trustedPlayer":true,"startup":"heavy"})
   ]);

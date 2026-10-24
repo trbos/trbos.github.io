@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const id='block-blast',canvas=document.getElementById('game'),status=document.getElementById('status');
-  const urls=[],started=performance.now();let stopped=false,instance=null,scanBoard=null;
+  const urls=[];let stopped=false,instance=null,scanBoard=null;
   const manifest=Object.freeze({
     loader:{file:'BlockBlast1.1-8.loader.js',type:'application/javascript',hash:'e400a2b78588508cdd1c1db75fb50180e44534240401c03e082d8658a833cfa9'},
     framework:{file:'BlockBlast1.1-8.framework.js.unityweb',type:'application/javascript',hash:'238e9b814415d6a8173eef953a4634401c445c9c58cc9f71f120ce6eae0960bf'},
@@ -30,10 +30,11 @@
   }
   function loadScript(url){return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=url;script.onload=resolve;script.onerror=reject;document.head.append(script);});}
   function firstBoard(){
+    const boardStarted=performance.now();
     const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)return fail('This browser can’t run Block Blast.');
     let pixels=null,width=0,height=0,since=0,last=0;
     function scan(){
-      if(stopped){scanBoard=null;return;}const now=performance.now();if(now-last<180)return;last=now;if(now-started>30000)return fail();
+      if(stopped){scanBoard=null;return;}const now=performance.now();if(now-last<180)return;last=now;if(now-boardStarted>30000)return fail();
       if(canvas.width!==width||canvas.height!==height){width=canvas.width;height=canvas.height;pixels=new Uint8Array(width*height*4);since=0;}
       gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);let board=0,hand=0;
       for(let y=0;y<height;y+=8)for(let x=0;x<width;x+=8){const i=(y*width+x)*4,r=pixels[i],g=pixels[i+1],b=pixels[i+2];const colored=b>205&&b>1.8*g||b>150&&r>115&&b>1.65*g||r>160&&r>1.5*b&&r>1.1*g||g>140&&g>1.5*b&&g>1.2*r;if(colored){const screenY=1-y/height;if(screenY>.18&&screenY<.75)board++;if(screenY>.76&&screenY<.94)hand++;}}
