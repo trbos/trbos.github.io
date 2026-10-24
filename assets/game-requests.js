@@ -2,10 +2,10 @@
   'use strict';
   const API='https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/game-requests',COOKIE='trbos_game_requests',PENDING='trbos.game-request.pending.v1';
   const HEX=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
-  const STAGES={queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed'};
-  const terminal=new Set(['added','unavailable','failed']);
+  const STAGES={queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
+  const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
-  const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.textContent='Add a game!';grid.append(button);
+  const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.textContent='Add a game!';grid.prepend(button);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
   dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
@@ -31,7 +31,7 @@
       const game=value.alreadyAdded;if(typeof game.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,79}$/.test(game.id)||typeof game.name!=='string'||game.name.length>100)throw Error('unavailable');
       existing=game;pending=null;storedPending(null);render();return;
     }
-    if(!value||typeof value.ready!=='boolean'||!validJob(value.request)||!validJob(value.active)||!(value.nextAt===null||typeof value.nextAt==='string'&&Number.isFinite(Date.parse(value.nextAt))))throw Error('unavailable');
+    if(!value||typeof value.ready!=='boolean'||!validJob(value.request)||!validJob(value.active)||value.paused!==undefined&&typeof value.paused!=='boolean')throw Error('unavailable');
     snapshot=value;
     if(pending&&value.request?.id===pending.id){pending=null;storedPending(null);}
     render();
@@ -44,9 +44,8 @@
   }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
-    const cooling=Number.isFinite(Date.parse(snapshot?.nextAt))&&Date.parse(snapshot.nextAt)>Date.now();
-    submit.disabled=busy||!snapshot?.ready||Boolean(active)||cooling;
-    form.hidden=Boolean(active)||cooling||!snapshot?.ready;
+    submit.disabled=busy||!snapshot?.ready||Boolean(active)||snapshot?.paused===true;
+    form.hidden=Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
     form.elements.game.disabled=busy;form.elements.url.disabled=busy;
     result.hidden=!job&&!existing;
     if(existing){
@@ -67,10 +66,10 @@
     if(keepNotice)return;
     if(existing)notice.textContent='';
     else if(!snapshot?.ready&&!active)notice.textContent='Automatic additions need setup.';
+    else if(snapshot?.paused)notice.textContent='New requests paused.';
     else if(other)notice.textContent='Another game is being added.';
     else if(active)notice.textContent='';
-    else if(cooling)notice.textContent='Next request: '+new Date(snapshot.nextAt).toLocaleString();
-    else notice.textContent='1 game every 24 hours.';
+    else notice.textContent='';
   }
   async function request(body){
     const abort=new env.AbortController();controller=abort;const timeout=env.setTimeout(()=>abort.abort(),12000);
@@ -79,7 +78,7 @@
       const data=await response.json();if(!response.ok){const error=Error(data?.error||'unavailable');error.status=response.status;throw error;}return data;
     }finally{env.clearTimeout(timeout);if(controller===abort)controller=null;}
   }
-  const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',daily_limit:'You can request 1 game every 24 hours.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
+  const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',paused:'New requests paused.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
   function fail(error){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}
   function schedule(){env.clearTimeout(timer);timer=null;if(dialog.open&&env.document.visibilityState!=='hidden')timer=env.setTimeout(()=>void refresh(),5000);}
   async function refresh(){
@@ -96,7 +95,7 @@
       const value=await request({action:'submit',id:pending.id,name:pending.name,url:pending.url});if(version!==ticket)return;
       accept(value);if(!existing)form.reset();
     }catch(error){
-      if(error?.status&&error.status<500){pending=null;try{storedPending(null);}catch{}if(['daily_limit','busy'].includes(error.message))try{accept(await request({action:'status'}));}catch{}}
+      if(error?.status&&error.status<500){pending=null;try{storedPending(null);}catch{}if(['paused','busy'].includes(error.message))try{accept(await request({action:'status'}));}catch{}}
       if(version===ticket)fail(error);
     }finally{if(version===ticket){busy=false;if(snapshot)render(true);schedule();}}
   }

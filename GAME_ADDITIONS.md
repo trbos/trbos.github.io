@@ -26,9 +26,13 @@ change runtime domains, modify this policy or workflows, or change other games.
    trackers, account gates, malicious downloads, inappropriate sexual/hate
    content, or real-money gambling. Do not confuse ordinary cartoon combat
    with prohibited content. Reject poor controls, broken assets, black canvases,
-   misleading copies and slow or incomplete versions. If no suitable version
-   can be integrated and verified, set `stage: "unavailable"` and a short,
-   version-specific factual `detail`; commit and upload the report, then stop.
+   misleading copies and incomplete versions. For technical failures, reproduce
+   the problem and make up to two focused repair attempts within this game's
+   files. If it remains broken, actually run the alternate credible build;
+   a distributor calling it slower is not a playtest. Only mark unavailable
+   after the repairs and alternate fail, or a source is actually unavailable.
+   Record what was tried and the concrete remaining failure, rather than
+   immediately abandoning the request. Keep the work focused on adding this game.
    A standard SPDX license is not required. Record the actual version's notices
    and sources as informational metadata, including uncertainty when relevant.
    Do not turn that uncertainty into an unavailable result. Do not reject an
@@ -57,7 +61,8 @@ change runtime domains, modify this policy or workflows, or change other games.
    when it is demonstrably better. Do not change shared player code. Preserve
    existing progress, origins, IDs, catalog entries and other source files.
    Total published files must stay under 950 MiB. Add exactly one catalog entry
-   with `id`, `name`, `url: "games/<id>/"`, and `trustedPlayer: true`. Signal
+   with `id`, `name`, `url: "games/<id>/"`, and `trustedPlayer: true`. For a heavy
+   compiled/3D runtime such as Eaglercraft add `startup: "heavy"`. Signal
    `game:ready`, `game:progress`, and `game:error` to the parent only for real
    runtime states, following the current player contract. Bump only the
    `assets/games.js?v=...` query in `index.html`.
@@ -66,19 +71,30 @@ change runtime domains, modify this policy or workflows, or change other games.
    `node .github/scripts/upload-game-addition.mjs <request UUID> <base commit>`
    with the exact arguments in the authorized comment. It uses the configured
    game-only upload capability; never print that key. Verify the returned SHA.
-   Local commits and prepared PR metadata alone do not deliver the game.
+   Local commits and prepared PR metadata alone do not deliver the game. If the
+   uploader says the request is no longer active, the owner cancelled/closed it
+   or it expired: stop immediately, without retrying or starting a replacement.
    Never fake elapsed-time percentages.
    Use Playwright for native start, meaningful play, loss/end, retry, a warm
    reopen, and iPad landscape/portrait emulation. Inspect screenshots, runtime
    errors and failed requests. Emulation is not a physical iPad test. Measure
-   cold and warm startup. Target <=20 seconds cold and <=10 seconds warm;
-   reject unusable or materially slower versions. Test a complete session, not
+   cold and warm startup. Lightweight games target <=20 seconds cold and <=10
+   seconds warm. Heavy compiled/3D games such as Eaglercraft allow <=90 seconds
+   cold and <=60 seconds warm, with a visible honest loading state. Optimize
+   avoidable waits; do not reject Minecraft merely because it takes over ten
+   seconds. Its catalog `startup: "heavy"` gives the real player and CI longer
+   deadlines too. Try focused fixes and the alternate build before giving up
+   on technical issues. Test a complete session, not
    just an HTML load or a made-up ready event. Do not suppress errors to pass.
 5. Finish `.game-requests/<UUID>.json` without altering `requestId`, `name`, or
    `url`. Set `stage: "ready"`, a valid `gameId`, and `quality` containing
    `passed`, `adFree`, `contentAppropriate`, `played`, `retried`, `controls`
    (all true only when verified), `sourcesCompared` (two public HTTPS URLs),
-   `coldMs`, `warmMs`, and a concise factual `evidence` string. For a new game
+   `coldMs`, `warmMs`, and a concise factual `evidence` string. A heavy game must
+   also set `quality.startupClass: "heavy"` and a factual `startupReason` of at
+   least 40 characters describing its compiled runtime/download. The timing
+   limits differ by class; play, retry, save, control and safety checks remain.
+   For a new game
    include `license: {name, url}` with the actual license/source URL; use
    `name: "Permission not verified; owner review"` when permission was not
    verified, rather than inventing a license or stopping the request. Add a
@@ -94,6 +110,7 @@ change runtime domains, modify this policy or workflows, or change other games.
    publisher requires a successful trusted CI check and verifies the hosted
    game before reporting completion to the visitor.
 
-The cookie quota and single global active request are server rules. Do not
-change them, add sign-in, remove the quality checks, or start parallel game
+The single global active request is a server rule. Requests have no daily quota.
+The owner can pause new requests or mark a request unavailable. Do not
+change those controls, add sign-in, remove the quality checks, or start parallel game
 requests. The GitHub integration uses the owner's ChatGPT plan and its limits.
