@@ -50,7 +50,7 @@ export async function run(branch,base,head='HEAD'){
   const report=JSON.parse(fs.readFileSync('.game-requests/'+id+'.json','utf8'));validateReport(report,id);
   const files=git('diff','--name-only',base,head).trim().split(/\r?\n/).filter(Boolean);validateScope(files,report,id);
   const game=validateCatalog(catalog(git('show',base+':assets/games.js')),catalog(fs.readFileSync('assets/games.js','utf8')),report);
-  const stripVersion=s=>s.replace(/assets\/games\.js\?v=[A-Za-z0-9_.-]+/g,'assets/games.js?v=VERSION');
+  const stripVersion=s=>s.replace(/\r\n/g,'\n').replace(/assets\/games\.js\?v=[A-Za-z0-9_.-]+/g,'assets/games.js?v=VERSION');
   assert.equal(stripVersion(fs.readFileSync('index.html','utf8')),stripVersion(git('show',base+':index.html')),'Only catalog cache version may change');
   for(const file of files){
     assert.ok(!git('ls-files','--stage','--',file).startsWith('120000'),'Symlinks are not permitted');
