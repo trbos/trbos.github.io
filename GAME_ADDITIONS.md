@@ -95,13 +95,12 @@ change runtime domains, modify this policy or workflows, or change other games.
    runtime states, following the current player contract. Bump only the
    `assets/games.js?v=...` query in `index.html`.
 4. Commit the report with stages `finding`, `testing`, and `adding` as the
-   corresponding work actually begins. After each commit, run
-   `node .github/scripts/upload-game-addition.mjs <request UUID> <base commit>`
-   with the exact arguments in the authorized comment. It uses the configured
-   game-only upload capability; never print that key. Verify the returned SHA.
-   Local commits and prepared PR metadata alone do not deliver the game. If the
-   uploader says the request is no longer active, the owner cancelled/closed it
-   or it expired: stop immediately, without retrying or starting a replacement.
+   corresponding work actually begins. The private Luna controller publishes
+   committed checkpoints and verifies their returned SHA. Do not push or invoke
+   the uploader from the model process, and do not look for credentials. A
+   local commit alone is not a hosted game. If the controller stops because the
+   owner cancelled/closed the request or it expired, stop immediately without
+   retrying or starting a replacement.
    Never fake elapsed-time percentages.
    Use Playwright for native start, meaningful play, loss/end, retry, a warm
    reopen, and iPad landscape/portrait emulation. Inspect screenshots, runtime
