@@ -15,6 +15,8 @@
   const titleBand = document.getElementById('title-band');
   const home = document.getElementById('home');
   const hx = document.getElementById('hx');
+  const games = document.getElementById('games');
+  const gamePlayer = document.getElementById('game-player');
   const player = document.getElementById('player');
   const frameHost = document.getElementById('frame-host');
   const loading = document.getElementById('loading');
@@ -164,17 +166,21 @@
     const current = route();
     if (current.path === '/polytrack') {location.replace(POLYTRACK_URL); return;}
     if (['/kahoot','/blooket','/gimkit'].includes(current.path)) {location.replace('#/hx'); return;}
-    const page = current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
+    const game = current.path.startsWith('/games/') ? window.SiteGames?.get(current.path.slice(7)) : null;
+    const page = game ? 'game' : current.path === '/games' ? 'games' : current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
     const changed = currentPage !== null && currentPage !== page;
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));
     updateBrowserLinks();
     for (const link of document.querySelectorAll('[data-nav]')) {
-      if (link.dataset.nav === page) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
+      if (link.dataset.nav === page || page === 'game' && link.dataset.nav === 'games') link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
     }
-    document.body.dataset.page = page; content.hidden = page === 'browser'; player.hidden = page !== 'browser';
-    titleBand.hidden = page !== 'hx'; home.hidden = page !== 'home'; hx.hidden = page !== 'hx';
+    document.body.dataset.page = page; content.hidden = page === 'browser' || page === 'game'; player.hidden = page !== 'browser'; gamePlayer.hidden = page !== 'game';
+    titleBand.hidden = page !== 'hx' && page !== 'games'; home.hidden = page !== 'home'; hx.hidden = page !== 'hx'; games.hidden = page !== 'games';
+    document.getElementById('page-title').textContent = page === 'games' ? 'Games' : 'Hx';
     window.SiteOwner?.onRoute(page);
-    document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : 'Browser · trbos'; currentPage = page;
+    document.title = game ? game.name + ' · trbos' : page === 'games' ? 'Games · trbos' : page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : 'Browser · trbos'; currentPage = page;
+    if (game) {clearPlayer(); window.SiteGames.open(game.id); return;}
+    window.SiteGames?.close();
     if (page === 'browser') {openBrowser(); return;}
     clearPlayer(); if (changed) {window.scrollTo(0,0); content.focus({preventScroll:true});}
   }
@@ -183,7 +189,7 @@
     if (event.data?.type === 'browser:ready') finishLoading(active);
     if (event.data?.type === 'browser:launcher') location.hash = '#/';
   });
-  document.querySelector('.skip-link').addEventListener('click',event => {event.preventDefault(); if (active) active.frame.focus(); else content.focus();});
+  document.querySelector('.skip-link').addEventListener('click',event => {event.preventDefault(); if (active) active.frame.focus(); else if (!window.SiteGames?.focus()) content.focus();});
   document.getElementById('retry').addEventListener('click',() => {if (active) openBrowser();});
   window.addEventListener('hashchange',render);
   window.addEventListener('pagehide',clearPlayer);

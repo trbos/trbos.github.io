@@ -4,14 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101722">
-  <meta name="description" content="Browser, PolyTrack, Kahoot, Blooket, and Gimkit.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://bawybmihvidtmpfpyajg.supabase.co; frame-src https://*.code.run; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="description" content="Browser, PolyTrack, Games, and Hx.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://bawybmihvidtmpfpyajg.supabase.co; frame-src 'self' https://*.code.run https://web-dashers.github.io https://snoozingmax.github.io; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>trbos</title>
   <link rel="icon" href="assets/icon.svg">
   <link rel="stylesheet" href="assets/site.css?v=copy-3">
   <link rel="stylesheet" href="assets/owner.css?v=2">
-  <script src="assets/owner.js?v=2" defer></script>
-  <script src="assets/site.js?v=site-control-2" defer></script>
+  <link rel="stylesheet" href="assets/games.css?v=1">
+  <script src="assets/owner.js?v=backups-1" defer></script>
+  <script src="assets/games.js?v=1" defer></script>
+  <script src="assets/site.js?v=games-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -21,6 +23,7 @@
       <a href="#/" data-nav="home" aria-current="page">Home</a>
       <a href="#/browser" data-nav="browser" data-browser-link>Browser</a>
       <a href="polytrack/">PolyTrack</a>
+      <a href="#/games" data-nav="games">Games</a>
       <a href="#/hx" data-nav="hx">Hx</a>
     </nav>
   </div></header>
@@ -33,9 +36,11 @@
       <a class="destination" href="polytrack/">
         <span>PolyTrack</span>
       </a>
+      <a class="destination" href="#/games">Games</a>
       <a id="owner-link" class="destination" href="#/owner" hidden>Admin</a>
     </div>
     <section id="owner" class="container site-owner" aria-label="Browser settings" hidden></section>
+    <section id="games" class="container games-grid" aria-label="Games" hidden></section>
     <section id="hx" class="container home-links" aria-label="Hx tools" hidden>
       <button class="destination" type="button" data-copy="kahoot" aria-label="Copy Kahoot bookmarklet" aria-live="polite">Kahoot</button>
       <button class="destination" type="button" data-copy="blooket" aria-label="Copy Blooket bookmarklet" aria-live="polite">Blooket</button>
@@ -46,6 +51,11 @@
     <div id="frame-host"></div>
     <div id="loading" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading Browser…</p></div>
     <div id="timeout" hidden><p role="status">This is taking longer than expected.</p><button id="retry" type="button">Retry</button></div>
+  </section>
+  <section id="game-player" aria-label="Game" hidden>
+    <div id="game-frame-host"></div>
+    <div id="game-loading" role="status">Loading…</div>
+    <div id="game-error" hidden><p role="status">Unable to load game.</p><button id="game-retry" type="button">Retry</button></div>
   </section>
 </body>
 </html>

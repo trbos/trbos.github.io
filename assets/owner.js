@@ -10,6 +10,7 @@
   const AUTO_COOLDOWN = 30*60*1000;
   const PENDING_KEY = 'trbos.site-owner.pending.v1';
   let host = null, fields = null, session = null, verified = false;
+  let backups = null, backupsLoading = null;
   let busy = false, operation = '', epoch = 0, pending = null, automaticPending = null;
   let currentRoute = location.hash.slice(2).split('?')[0] || 'home', currentOrigin = null;
   let currentPolyOrigin = null, selectedTarget = 'browser', operationTarget = 'browser';
@@ -133,6 +134,7 @@
     fields.login.hidden = verified;
     fields.controls.hidden = !verified;
     fields.history.hidden = !verified || selectedTarget !== 'browser';
+    backups?.setOwner(verified);
     fields.username.disabled = busy;
     fields.pin.disabled = busy;
     fields.signin.disabled = busy;
@@ -465,6 +467,25 @@
     fields.auto.addEventListener('change',() => {autoEnabled = fields.auto.checked; resetFailures();});
     host.querySelector('.site-owner-signout').addEventListener('click',() => {forget(); status(); fields.username.focus();});
     render();
+    if (!backupsLoading) {
+      backupsLoading = new Promise((resolve,reject) => {
+        const css = document.createElement('link');css.rel='stylesheet';css.href='./assets/owner-backups.css?v=1';document.head.append(css);
+        const script = document.createElement('script');script.src='./assets/owner-backups.js?v=1';
+        script.onload=resolve;script.onerror=reject;document.head.append(script);
+      }).then(() => {
+        backups=window.createSiteOwnerBackups(window,host,async body => {
+          if (!verified || !session) throw new RequestError(401);
+          const version=epoch;
+          try {
+            if (!await checkOwner(session,version)) throw new RequestError(401);
+            return await request(SUPABASE_URL+'/functions/v1/polytrack-restore',{
+              method:'POST',headers:{'Content-Type':'application/json',apikey:PUBLIC_KEY,Authorization:'Bearer '+session.accessToken},body:JSON.stringify(body)
+            },20000);
+          } catch(error) { if(version===epoch&&[401,403].includes(error.status))forget();throw error; }
+        });
+        backups.setOwner(verified);
+      }).catch(() => {backupsLoading=null;if(verified)status('Backups unavailable. Reload.');});
+    }
     return container;
   }
 

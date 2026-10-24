@@ -22,9 +22,9 @@
   const debounceMs = options.debounceMs ?? 1800;
   const periodMs = options.periodMs ?? 30000;
   let storage, identity, pending, dbPromise, running, timer, period, controller, startPromise;
-  let started = false, stopped = false, blocked = false, checked = false, changed = true;
+  let started = false, stopped = false, blocked = false, checked = false, changed = true, restoring = false;
   let retries = 0, status = { state: 'starting', deviceId: null, revision: 0, updatedAt: null };
-  let originalSet, originalRemove, wrappedSet, wrappedRemove;
+  let originalSet, originalRemove, wrappedSet, wrappedRemove, pollFallback;
   const listeners = [];
 
   const allowed = key => typeof key === 'string' && (/^polytrack_/.test(key) || EXTRA_KEYS.has(key));
@@ -126,7 +126,7 @@
     return callback();
   }
   function schedule(delay = debounceMs) {
-    if (stopped || blocked) return;
+    if (stopped || blocked || restoring) return;
     clearTimer(timer);
     timer = setTimer(() => { timer = null; void flush(); }, delay);
   }
@@ -160,6 +160,7 @@
       if (env.document.visibilityState !== 'hidden') { changed = true; void flush(); }
       period = setTimer(poll, periodMs);
     };
+    pollFallback = poll;
     period = setTimer(poll, periodMs);
   }
   async function request(body, keepalive) {
@@ -182,7 +183,7 @@
     } finally { clearTimer(timeout); controller = null; }
   }
   async function flushInner(keepalive) {
-    if (stopped || blocked) return;
+    if (stopped || blocked || restoring) return;
     const latest = getLocalIdentity();
     if (latest && (latest.deviceId !== identity.deviceId || latest.secret !== identity.secret)) { blocked = true; update('conflict'); return; }
     if (latest && latest.revision > identity.revision) {
@@ -232,7 +233,7 @@
   }
   function flush({ keepalive = false } = {}) {
     if (running) return running;
-    if (!started || stopped || blocked) return Promise.resolve({ ...status });
+    if (!started || stopped || blocked || restoring) return Promise.resolve({ ...status });
     clearTimer(timer); timer = null;
     running = withLock(() => flushInner(keepalive)).catch(error => {
       if (stopped) return;
@@ -286,7 +287,53 @@
     void dbPromise?.then(db => db?.close());
     update('stopped');
   }
-  return Object.freeze({ start, flush, stop, getStatus: () => ({ ...status }),
+  // prepare() durably journals and returns synchronous apply()/rollback() methods,
+  // plus optional async finish() to durably mark the journal committed.
+  // No network upload is initiated by this barrier. A successful restore stays
+  // suspended until reload; failures resume the unchanged local snapshot.
+  async function restoreBarrier(prepare) {
+    if (restoring || stopped || typeof prepare !== 'function') throw new Error('restore-unavailable');
+    restoring = true; clearTimer(timer); timer = null; clearTimer(period); period = null;
+    try {
+      await startPromise;
+      await running;
+      return await withLock(async () => {
+        const plan = await prepare();
+        if (!plan || typeof plan.apply !== 'function' || typeof plan.rollback !== 'function') throw new Error('restore-failed');
+        const previousPending = await stored('pending');
+        let cleared = false;
+        const writePending = async value => {
+          const db = await database();
+          if (!db) throw new Error('restore-unavailable');
+          await new Promise((resolve,reject) => {
+            let tx;const timeout=setTimer(()=>{try{tx?.abort();}catch{}reject(new Error('restore-unavailable'));},5000);
+            try {
+              tx=db.transaction('state','readwrite');
+              if(value===undefined||value===null)tx.objectStore('state').delete('pending');else tx.objectStore('state').put(value,'pending');
+              tx.oncomplete=()=>{clearTimer(timeout);resolve();};
+              tx.onerror=tx.onabort=()=>{clearTimer(timeout);reject(new Error('restore-unavailable'));};
+            }catch(error){clearTimer(timeout);reject(error);}
+          });
+        };
+        try {
+          if (plan.apply() !== true) throw new Error('restore-failed');
+          await writePending(null);cleared = true;
+          if(typeof plan.finish==='function')await plan.finish();
+          pending = null; checked = false; changed = true;
+          return true;
+        } catch(error) {
+          if (plan.rollback() !== true) { stop(); throw new Error('restore-rollback-failed'); }
+          if(cleared)try{await writePending(previousPending);}catch{stop();throw new Error('restore-unavailable');}
+          throw error;
+        }
+      });
+    } catch(error) {
+      restoring = false; changed = true; schedule();
+      if (!stopped && pollFallback) period = setTimer(pollFallback, periodMs);
+      throw error;
+    }
+  }
+  return Object.freeze({ start, flush, stop, restoreBarrier, getStatus: () => ({ ...status }),
     getBackupId: () => identity?.deviceId || null,
     getRecoveryKey: () => identity?.secret || null });
 });
