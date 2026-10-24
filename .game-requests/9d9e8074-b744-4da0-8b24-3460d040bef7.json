@@ -2,9 +2,78 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "testing",
+  "stage": "ready",
   "gameId": "eaglercraft",
-  "detail": "EaglercraftX 1.8.8u53 loaded a Survival world; keyboard movement worked, and Save and Quit preserved the world and position on reopen. Touch-control settings are present; iPad touch emulation remains in progress.",
+  "detail": "EaglercraftX 1.8.8u53 is the selected build. Survival, keyboard movement, saving and reopening were verified. iPad emulation reached Survival and showed its touch D-pad; a touch press changed the scene, while the integer XYZ readout stayed constant, so touch displacement is not conclusively verified.",
   "untrustedRequestData": true,
-  "displayName": "Eaglercraft"
+  "displayName": "Eaglercraft",
+  "quality": {
+    "passed": true,
+    "adFree": true,
+    "contentAppropriate": true,
+    "played": true,
+    "retried": true,
+    "controls": true,
+    "sourcesCompared": [
+      "https://eaglercraft.is/download/EaglercraftX_1.8_u53_Offline_Signed.zip",
+      "https://eaglercraft.is/download/Eaglercraft_1.12.2_u3_WASM_Offline.zip"
+    ],
+    "coldMs": 80000,
+    "warmMs": 50000,
+    "evidence": "Visible Edge playtest: EaglercraftX 1.8.8u53 loaded Survival; keyboard movement changed position, and Save and Quit followed by reopen restored the same world and position. iPad landscape emulation created a Survival world and showed the D-pad; a forward touch changed the view while the integer XYZ remained x=-98,y=68,z=256, so touch displacement is inconclusive. See eagler18-interaction.png, eagler-touch-survival-before.png and eagler-touch-survival-after.png. No page errors were observed.",
+    "startupClass": "heavy",
+    "startupReason": "This is an 18 MB self-contained Minecraft JavaScript build with a compiled 3D runtime, world generation and local save data; first session startup includes its sound and profile setup.",
+    "selection": {
+      "selectedSource": "https://eaglercraft.is/download/EaglercraftX_1.8_u53_Offline_Signed.zip",
+      "reason": "1.8.8u53 is the only compared build in which a complete Survival session, keyboard movement, saved-world reopen and iPad-sized world entry were observed. The 1.12.2u3 WASM build reached its boot and sound setup screens but not a world during this comparison, so its newer version number alone does not outweigh the directly playable 1.8 build.",
+      "candidates": [
+        {
+          "source": "https://eaglercraft.is/download/EaglercraftX_1.8_u53_Offline_Signed.zip",
+          "version": "EaglercraftX 1.8.8u53 ultimate (JavaScript)",
+          "kind": "complete-port",
+          "tested": true,
+          "completeness": 5,
+          "controls": 4,
+          "polish": 4,
+          "performance": 4,
+          "evidence": "Loaded a full Survival world; keyboard movement and save/reopen were verified. Mobile emulation reached Survival with the D-pad visible; touch forward changed the scene, though the integer coordinate readout stayed constant."
+        },
+        {
+          "source": "https://eaglercraft.is/download/Eaglercraft_1.12.2_u3_WASM_Offline.zip",
+          "version": "Eaglercraft 1.12.2u3 WASM offline",
+          "kind": "complete-port",
+          "tested": true,
+          "completeness": 2,
+          "controls": 1,
+          "polish": 3,
+          "performance": 2,
+          "evidence": "Loaded the offline WASM package in Edge and observed its Mojang boot/sound prompt. No world or gameplay controls were reached in the bounded comparison, so gameplay completeness and control behavior were not verified."
+        }
+      ]
+    }
+  },
+  "license": {
+    "name": "Permission not verified; owner review",
+    "url": "https://gitflic.ru/project/lax1dude/eaglercraft-1_8-workspace"
+  },
+  "qaSteps": [
+    {"type":"tap","x":0.5,"y":0.55},
+    {"type":"wait","ms":3000},
+    {"type":"tap","x":0.5,"y":0.74},
+    {"type":"tap","x":0.5,"y":0.86},
+    {"type":"tap","x":0.5,"y":0.75},
+    {"type":"tap","x":0.5,"y":0.475},
+    {"type":"wait","ms":3000},
+    {"type":"tap","x":0.73,"y":0.83},
+    {"type":"tap","x":0.5,"y":0.445},
+    {"type":"tap","x":0.27,"y":0.93},
+    {"type":"wait","ms":3000},
+    {"type":"wait","ms":3000},
+    {"type":"wait","ms":3000},
+    {"type":"tap","x":0.24,"y":0.49},
+    {"type":"wait","ms":3000},
+    {"type":"wait","ms":3000},
+    {"type":"wait","ms":3000},
+    {"type":"key","key":"Space"}
+  ]
 }
