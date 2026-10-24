@@ -2,8 +2,8 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "testing",
+  "stage": "adding",
   "gameId": null,
-  "detail": "Testing EaglercraftX 1.8.8 u53 JavaScript: complete local-world gameplay, persistence, retry, startup timing, and desktop/iPad browser rendering.",
+  "detail": "Integrating the maintained EaglercraftX 1.8.8 u53 JavaScript offline build with its upstream credits and owner-review permission metadata.",
   "untrustedRequestData": true
 }
