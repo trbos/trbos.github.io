@@ -9,6 +9,30 @@ import {findExistingGame} from './game-request-catalog.ts';
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',maxBuffer:4*1024*1024});
 const ID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const slug=/^[a-z0-9][a-z0-9-]{0,79}$/;
+export function validateSelection(report){
+  const selection=report.quality?.selection;
+  assert.ok(selection&&typeof selection==='object'&&!Array.isArray(selection),'Version comparison is required');
+  assert.ok(typeof selection.reason==='string'&&selection.reason.trim().length>=80&&selection.reason.length<=1400,'Explain why this is the best tested version');
+  assert.ok(Array.isArray(selection.candidates)&&selection.candidates.length>=2&&selection.candidates.length<=5,'Compare 2–5 credible candidates');
+  const candidates=selection.candidates,seen=new Set(),scores=c=>.3*c.completeness+.3*c.controls+.2*c.polish+.2*c.performance;
+  const eligible=c=>c.tested&&c.completeness>=4&&c.controls>=4&&c.polish>=4&&c.performance>=3&&scores(c)>=4;
+  for(const candidate of candidates){
+    assert.ok(candidate&&typeof candidate==='object'&&!Array.isArray(candidate));
+    assert.ok(typeof candidate.source==='string'&&candidate.source.length<=800);
+    const source=new URL(candidate.source);assert.equal(source.protocol,'https:');assert.ok(!source.username&&!source.password);
+    assert.ok(typeof candidate.version==='string'&&candidate.version.trim().length>=2&&candidate.version.length<=80);
+    const identity=candidate.source+'|'+candidate.version;assert.ok(!seen.has(identity),'Duplicate comparison candidate');seen.add(identity);
+    assert.ok(['official','complete-port','fan-remake'].includes(candidate.kind));assert.equal(typeof candidate.tested,'boolean');
+    for(const field of ['completeness','controls','polish','performance'])assert.ok(Number.isInteger(candidate[field])&&candidate[field]>=0&&candidate[field]<=5,'Invalid candidate '+field);
+    assert.ok(typeof candidate.evidence==='string'&&candidate.evidence.trim().length>=40&&candidate.evidence.length<=1200,'Record actual candidate observations');
+  }
+  assert.ok(candidates.filter(c=>c.tested).length>=2,'Actually test the strongest two candidates');
+  const selected=candidates.find(c=>c.source===selection.selectedSource);
+  assert.ok(selected&&eligible(selected),'Selected game must meet completeness, controls, polish and performance thresholds');
+  assert.ok(report.quality.sourcesCompared.includes(selection.selectedSource),'Selected source missing from compared sources');
+  assert.ok(candidates.every(c=>!eligible(c)||scores(c)<=scores(selected)+.001),'A better tested version was ignored');
+  if(selected.kind==='fan-remake')assert.ok(!candidates.some(c=>c.kind!=='fan-remake'&&eligible(c)&&scores(c)>=scores(selected)-.001),'Prefer the complete original/port over an equivalent remake');
+}
 export function startupLimits(report){
   const kind=report.quality?.startupClass||'standard';
   assert.ok(['standard','heavy'].includes(kind),'Invalid startup class');
@@ -26,6 +50,7 @@ export function validateReport(report,id){
   for(const key of ['passed','adFree','contentAppropriate','played','retried','controls'])assert.equal(report.quality?.[key],true,'Missing verified '+key);
   assert.ok(Array.isArray(report.quality.sourcesCompared)&&new Set(report.quality.sourcesCompared).size>=2,'Compare two credible versions');
   for(const url of report.quality.sourcesCompared){const u=new URL(url);assert.equal(u.protocol,'https:');assert.ok(!u.username&&!u.password);}
+  validateSelection(report);
   const limits=startupLimits(report);
   assert.ok(Number.isFinite(report.quality.coldMs)&&report.quality.coldMs>0&&report.quality.coldMs<=limits.cold,'Cold start is too slow for this runtime');
   assert.ok(Number.isFinite(report.quality.warmMs)&&report.quality.warmMs>0&&report.quality.warmMs<=limits.warm,'Warm start is too slow for this runtime');
