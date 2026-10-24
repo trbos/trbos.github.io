@@ -1,7 +1,11 @@
 (() => {
   'use strict';
-  const BROWSER_ORIGIN = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
-  const POLYTRACK_URL = 'https://p01--wordbuilder--675vggg6lnyg.code.run/polytrack/play/';
+  const CONTROL_URL = 'https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/site-control';
+  const POLYTRACK_URL = location.origin + '/polytrack/';
+  const ORIGIN_KEY = 'siteBrowserOrigin';
+  const validOrigin = value => typeof value === 'string' && /^https:\/\/[a-z](?:[a-z0-9-]{0,6}[a-z0-9])?--wordbuilder--675vggg6lnyg\.code\.run$/.test(value) && !/^https:\/\/(?:p01|launch)--/.test(value);
+  let browserOrigin = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
+  try { const saved = localStorage.getItem(ORIGIN_KEY); if (validOrigin(saved)) browserOrigin = saved; } catch {}
   const TOOLS = {
     kahoot:{file:'assets/bookmarklets/kahoot.txt?v=2'},
     blooket:{file:'assets/bookmarklets/blooket.txt?v=2'},
@@ -15,9 +19,51 @@
   const frameHost = document.getElementById('frame-host');
   const loading = document.getElementById('loading');
   const timeout = document.getElementById('timeout');
+  const owner = document.getElementById('owner');
+  const ownerLink = document.getElementById('owner-link');
   const bookmarklets = new Map(), feedbackTimers = new WeakMap();
   let active = null, currentPage = null;
+  let configRequest = null;
+  let configVersion = 0;
   let browserSite = readSite(new URLSearchParams(location.search).get('url'));
+
+  function setRuntimeOrigin(value) {
+    if (!validOrigin(value)) return false;
+    const changed = browserOrigin !== value;
+    browserOrigin = value;
+    try { localStorage.setItem(ORIGIN_KEY,value); } catch {}
+    return changed;
+  }
+  function refreshRuntime() {
+    if (configRequest) return configRequest;
+    const version = configVersion;
+    const controller = new AbortController(), timer = setTimeout(() => controller.abort(),5000);
+    configRequest = fetch(CONTROL_URL,{signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer'})
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (version !== configVersion) return false;
+        const changed = setRuntimeOrigin(data?.runtimeOrigin);
+        if (changed && active?.frame && new URL(active.frame.src).origin !== browserOrigin) openBrowser();
+        return changed;
+      }).catch(() => false)
+      .finally(() => {clearTimeout(timer); configRequest = null;});
+    return configRequest;
+  }
+  void refreshRuntime();
+  window.SiteOwner?.mount(owner);
+  window.addEventListener('site:owner',event => { ownerLink.hidden = event.detail?.owner !== true; });
+  window.addEventListener('site:browser-config',event => {
+    configVersion++;
+    if (setRuntimeOrigin(event.detail?.runtimeOrigin) && currentPage === 'browser') openBrowser();
+  });
+  window.addEventListener('site:browser-retry',event => {
+    if (currentPage === 'browser' && event.detail?.runtimeOrigin === browserOrigin) openBrowser();
+  });
+  window.addEventListener('site:browser-error',event => {
+    if (currentPage !== 'browser' || !active || active.ready || event.detail?.runtimeOrigin !== browserOrigin) return;
+    if (typeof event.detail.message === 'string') timeout.querySelector('p').textContent = event.detail.message;
+    loading.hidden = true; timeout.hidden = false;
+  });
 
   function loadBookmarklet(kind) {
     if (!bookmarklets.has(kind)) {
@@ -79,26 +125,39 @@
     const search = query.toString();
     for (const link of document.querySelectorAll('[data-browser-link]')) link.href = '#/browser' + (search ? '?' + search : '');
   }
-  function clearPlayer() {if (active) {clearTimeout(active.timer); active.frame.remove(); active = null;}}
+  function clearPlayer() {if (active) {clearTimeout(active.timer); active.frame?.remove(); active = null;}}
   function finishLoading(state) {
     if (active !== state) return;
+    state.ready = true;
     clearTimeout(state.timer); loading.hidden = true; timeout.hidden = true; player.setAttribute('aria-busy','false');
+    window.SiteOwner?.browserReady?.(state.origin);
   }
-  function openBrowser() {
+  async function openBrowser() {
     clearPlayer();
-    const url = new URL(BROWSER_ORIGIN + '/'); if (browserSite) url.searchParams.set('url',browserSite);
-    const frame = document.createElement('iframe'), state = {frame,timer:null}; active = state;
+    const state = {frame:null,timer:null}; active = state;
+    timeout.querySelector('p').textContent = 'This is taking longer than expected.';
+    loading.hidden = false; timeout.hidden = true; player.setAttribute('aria-busy','true');
+    state.timer = setTimeout(() => {
+      if (active !== state) return;
+      loading.hidden = true; timeout.hidden = false; player.setAttribute('aria-busy','false');
+      Promise.resolve(window.SiteOwner?.browserFailed?.(state.origin)).catch(() => {});
+    },45000);
+    let waitTimer;
+    await Promise.race([refreshRuntime(),new Promise(resolve => {waitTimer = setTimeout(resolve,1800);})]);
+    clearTimeout(waitTimer);
+    if (active !== state) return;
+    const url = new URL(browserOrigin + '/'); if (browserSite) url.searchParams.set('url',browserSite);
+    state.origin = browserOrigin;
+    const frame = document.createElement('iframe'); state.frame = frame;
     frame.title = 'Browser'; frame.allow = 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
     frame.allowFullscreen = true; frame.referrerPolicy = 'strict-origin-when-cross-origin';
-    loading.hidden = false; timeout.hidden = true; player.setAttribute('aria-busy','true');
-    state.timer = setTimeout(() => {if (active === state) {loading.hidden = true; timeout.hidden = false; player.setAttribute('aria-busy','false');}},45000);
     frame.src = url.href; frameHost.append(frame);
   }
   function render() {
     const current = route();
     if (current.path === '/polytrack') {location.replace(POLYTRACK_URL); return;}
     if (['/kahoot','/blooket','/gimkit'].includes(current.path)) {location.replace('#/hx'); return;}
-    const page = current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : 'home';
+    const page = current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
     const changed = currentPage !== null && currentPage !== page;
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));
     updateBrowserLinks();
@@ -107,12 +166,13 @@
     }
     document.body.dataset.page = page; content.hidden = page === 'browser'; player.hidden = page !== 'browser';
     titleBand.hidden = page !== 'hx'; home.hidden = page !== 'home'; hx.hidden = page !== 'hx';
+    window.SiteOwner?.onRoute(page);
     document.title = page === 'home' ? 'trbos' : page === 'hx' ? 'Hx · trbos' : 'Browser · trbos'; currentPage = page;
     if (page === 'browser') {openBrowser(); return;}
     clearPlayer(); if (changed) {window.scrollTo(0,0); content.focus({preventScroll:true});}
   }
   window.addEventListener('message',event => {
-    if (!active || event.source !== active.frame.contentWindow || event.origin !== BROWSER_ORIGIN) return;
+    if (!active?.frame || event.source !== active.frame.contentWindow || event.origin !== browserOrigin) return;
     if (event.data?.type === 'browser:ready') finishLoading(active);
     if (event.data?.type === 'browser:launcher') location.hash = '#/';
   });

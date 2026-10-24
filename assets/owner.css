@@ -1,0 +1,19 @@
+.site-owner{max-width:360px;padding-top:24px;padding-bottom:40px}
+.site-owner form,.site-owner label{display:grid;gap:8px}
+.site-owner form{gap:16px}
+.site-owner label{font-size:14px}
+.site-owner input{width:100%;min-width:0;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--band);color:var(--text);font:inherit;font-size:16px}
+.site-owner input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.site-owner button{width:100%}
+.site-owner-signout{background:transparent}
+.site-owner-status{margin:16px 0 0;font-size:14px;overflow-wrap:anywhere}
+.site-owner-status:empty{display:none}
+.site-owner .site-owner-auto{display:flex;align-items:center;gap:10px;min-height:44px}
+.site-owner input[type=checkbox]{width:18px;height:18px;min-height:18px;flex:none;padding:0;accent-color:var(--accent)}
+.site-owner-log{margin-top:28px}
+.site-owner-log h2{margin:0 0 12px;font-size:18px}
+.site-owner-log p{margin:0;font-size:14px;color:var(--muted)}
+.site-owner-log table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px;text-align:left}
+.site-owner-log th,.site-owner-log td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.site-owner-log th{font-weight:600;color:var(--muted)}
+.site-owner-log th:first-child{width:34%}

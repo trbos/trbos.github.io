@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101722">
   <meta name="description" content="Browser, PolyTrack, Kahoot, Blooket, and Gimkit.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://browse--wordbuilder--675vggg6lnyg.code.run; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://bawybmihvidtmpfpyajg.supabase.co; frame-src https://*.code.run; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>trbos</title>
   <link rel="icon" href="assets/icon.svg">
   <link rel="stylesheet" href="assets/site.css?v=copy-3">
-  <script src="assets/site.js?v=polytrack-original-1" defer></script>
+  <link rel="stylesheet" href="assets/owner.css?v=1">
+  <script src="assets/owner.js?v=1" defer></script>
+  <script src="assets/site.js?v=site-control-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -18,7 +20,7 @@
     <nav aria-label="Main">
       <a href="#/" data-nav="home" aria-current="page">Home</a>
       <a href="#/browser" data-nav="browser" data-browser-link>Browser</a>
-      <a href="https://p01--wordbuilder--675vggg6lnyg.code.run/polytrack/play/">PolyTrack</a>
+      <a href="polytrack/">PolyTrack</a>
       <a href="#/hx" data-nav="hx">Hx</a>
     </nav>
   </div></header>
@@ -28,10 +30,12 @@
       <a id="browser-link" class="destination" href="#/browser" data-browser-link>
         <span>Browser</span>
       </a>
-      <a class="destination" href="https://p01--wordbuilder--675vggg6lnyg.code.run/polytrack/play/">
+      <a class="destination" href="polytrack/">
         <span>PolyTrack</span>
       </a>
+      <a id="owner-link" class="destination" href="#/owner" hidden>Rotate Browser</a>
     </div>
+    <section id="owner" class="container site-owner" aria-label="Browser settings" hidden></section>
     <section id="hx" class="container home-links" aria-label="Hx tools" hidden>
       <button class="destination" type="button" data-copy="kahoot" aria-label="Copy Kahoot bookmarklet" aria-live="polite">Kahoot</button>
       <button class="destination" type="button" data-copy="blooket" aria-label="Copy Blooket bookmarklet" aria-live="polite">Blooket</button>
