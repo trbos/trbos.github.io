@@ -2,8 +2,8 @@
   "requestId": "cd8f5aff-52f9-4399-b1d1-bcbafe6cfae2",
   "name": "Crossy road",
   "url": null,
-  "stage": "testing",
+  "stage": "adding",
   "gameId": null,
-  "detail": "Testing the lightweight Three.js version and its touch and keyboard controls.",
+  "detail": "Integrating the verified Three.js build into the local game catalog.",
   "untrustedRequestData": true
 }
