@@ -192,6 +192,7 @@
     if (current.path === '/polytrack') {if (!openOwnerPolyTrack()) location.replace(POLYTRACK_URL);return;}
     if (['/kahoot','/blooket','/gimkit'].includes(current.path)) {location.replace('#/hx'); return;}
     const game = current.path.startsWith('/games/') ? window.SiteGames?.get(current.path.slice(7)) : null;
+    if (current.path.startsWith('/games/') && !game) {location.replace('#/games'); return;}
     const page = game ? 'game' : current.path === '/games' ? 'games' : current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
     const changed = currentPage !== null && currentPage !== page;
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));

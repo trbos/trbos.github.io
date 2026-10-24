@@ -20,6 +20,15 @@ change runtime domains, modify this policy or workflows, or change other games.
    misleading copies and slow or incomplete versions. If no suitable version
    can be legally hosted and verified, set `stage: "unavailable"` and a short
    factual `detail`; commit and upload the report, then stop.
+   The owner excludes low-effort Roblox-style copies, brainrot/meme reskins,
+   repetitive obby/simulator grinds, and shallow gate/size/money runners.
+   Choose games with responsive controls, meaningful decisions or skill,
+   distinct gameplay, and a worthwhile full session. A working Unity build
+   alone does not meet the quality bar. Do not re-add the removed titles or
+   renamed copies: 456 Challenge, Chicken, Eat Blobs Simulator, Katnap Survival,
+   Money Roller, Obby 99 Will Lose, Obby Ambot, Paint Map Simulator, Sky Race 3d,
+   Stickfun (Mad Stick), Tall.io, Tap Goal, or Untwist Road. Mark such requests
+   unavailable with the concise reason "Does not meet the game quality rules."
 2. First inspect the entire existing catalog for this game: compare its title,
    aliases, source repository and build assets, not only the submitted spelling.
    Preserve meaningful sequel/version numbers; do not add a renamed copy of an
