@@ -2,9 +2,9 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "adding",
+  "stage": "testing",
   "gameId": "eaglercraft",
-  "detail": "Adding the tested EaglercraftX 1.8.8u53 offline browser build and loading signals.",
+  "detail": "EaglercraftX 1.8.8u53 loaded a Survival world; keyboard movement worked, and Save and Quit preserved the world and position on reopen. Touch-control settings are present; iPad touch emulation remains in progress.",
   "untrustedRequestData": true,
   "displayName": "Eaglercraft"
 }
