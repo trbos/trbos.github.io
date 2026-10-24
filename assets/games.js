@@ -13,7 +13,8 @@
     Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/","trustedPlayer":true}),
     Object.freeze({"id":"sniper-shot","name":"Sniper Shot","url":"games/sniper-shot/","trustedPlayer":true}),
     Object.freeze({"id":"time-shooter-3-swat","name":"Time Shooter 3 SWAT","url":"games/time-shooter-3-swat/","trustedPlayer":true}),
-    Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true})
+    Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true}),
+    Object.freeze({"id":"eaglercraft","name":"Eaglercraft","url":"games/eaglercraft/","trustedPlayer":true,"startup":"heavy"})
   ]);
   const grid = document.getElementById('games');
   const player = document.getElementById('game-player');
