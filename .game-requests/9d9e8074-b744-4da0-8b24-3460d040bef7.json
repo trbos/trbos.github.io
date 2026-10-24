@@ -2,8 +2,8 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "queued",
+  "stage": "finding",
   "gameId": null,
-  "detail": "",
+  "detail": "Comparing EaglercraftX 1.8.8 u53 JavaScript and Eaglercraft 1.12.2 u3 JavaScript builds for maintainability, browser controls, and runtime quality.",
   "untrustedRequestData": true
 }
