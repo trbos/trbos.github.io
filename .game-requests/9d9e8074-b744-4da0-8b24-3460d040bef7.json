@@ -2,8 +2,8 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "finding",
+  "stage": "unavailable",
   "gameId": null,
-  "detail": "",
+  "detail": "No legally hostable version was found: Eaglercraft distributes decompiled Minecraft code/assets, and Mojang identifies the project as unauthorized and unlicensed.",
   "untrustedRequestData": true
 }
