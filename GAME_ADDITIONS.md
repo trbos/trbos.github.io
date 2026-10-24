@@ -21,7 +21,12 @@ change runtime domains, modify this policy or workflows, or change other games.
 1. Compare two credible sources/versions, with about two minutes of initial
    source research. Stop searching once a suitable version is found; avoid
    unrelated audits and redesigns. Prefer official, maintained
-   open-source versions. Check the actual
+   open-source versions. From the first `finding` report onward, set
+   `displayName` to the clean game title with correct spelling/capitalization
+   (for example "Eaglercraft" or "Crossy Road"). Remove request wording such
+   as "add", "please", and version-selection instructions from the display
+   title. Keep the original `name` unchanged for request identity/replay.
+   Check the actual
    code and build. Do not use remote iframe-only copies, advertisements,
    trackers, account gates, malicious downloads, inappropriate sexual/hate
    content, or real-money gambling. Do not confuse ordinary cartoon combat
