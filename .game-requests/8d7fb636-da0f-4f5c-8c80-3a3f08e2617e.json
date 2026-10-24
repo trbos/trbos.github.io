@@ -1,0 +1,34 @@
+{
+  "requestId": "8d7fb636-da0f-4f5c-8c80-3a3f08e2617e",
+  "name": "Hextris",
+  "url": "https://github.com/Hextris/hextris",
+  "stage": "ready",
+  "gameId": "hextris",
+  "detail": "",
+  "untrustedRequestData": true,
+  "quality": {
+    "passed": true,
+    "adFree": true,
+    "contentAppropriate": true,
+    "played": true,
+    "retried": true,
+    "controls": true,
+    "sourcesCompared": [
+      "https://github.com/Hextris/hextris",
+      "https://github.com/attogram/hextris-lite"
+    ],
+    "coldMs": 736,
+    "warmMs": 526,
+    "evidence": "Played with keyboard and touch, verified a full-stack GAME OVER and Enter retry, and reopened warm with no failed or external requests. Screenshots: .game-addition-qa/desktop.png, .game-addition-qa/ipad-landscape.png, and .game-addition-qa/ipad-portrait.png. Playwright emulated iPad landscape and portrait; no physical iPad was tested."
+  },
+  "license": {
+    "name": "GPL-3.0-or-later",
+    "url": "https://github.com/attogram/hextris-lite/blob/a55bf9f3c6137e51a9ef919b7cd5e2dd565ef6b7/LICENSE.md"
+  },
+  "qaSteps": [
+    {
+      "type": "key",
+      "key": "Enter"
+    }
+  ]
+}
