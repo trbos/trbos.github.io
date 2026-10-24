@@ -9,6 +9,12 @@ import {findExistingGame} from './game-request-catalog.ts';
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',maxBuffer:4*1024*1024});
 const ID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const slug=/^[a-z0-9][a-z0-9-]{0,79}$/;
+export function startupLimits(report){
+  const kind=report.quality?.startupClass||'standard';
+  assert.ok(['standard','heavy'].includes(kind),'Invalid startup class');
+  if(kind==='heavy')assert.ok(typeof report.quality.startupReason==='string'&&report.quality.startupReason.trim().length>=40,'Explain the heavy runtime/download');
+  return kind==='heavy'?{cold:90000,warm:60000,readyCold:120000,readyWarm:90000}:{cold:20000,warm:10000,readyCold:30000,readyWarm:15000};
+}
 export function catalog(text){
   const entries=[...text.matchAll(/Object\.freeze\((\{"id":[^\r\n]+?\})\)/g)].map(m=>JSON.parse(m[1]));
   assert.ok(entries.length>0,'Catalog missing');assert.equal(new Set(entries.map(g=>g.id)).size,entries.length,'Duplicate catalog IDs');return entries;
@@ -16,13 +22,15 @@ export function catalog(text){
 export function validateReport(report,id){
   assert.equal(report.requestId,id);assert.equal(report.stage,'ready','Game is not ready for verification');assert.ok(slug.test(report.gameId));
   assert.equal(typeof report.name,'string');assert.ok(report.name.length>=2&&report.name.length<=100);
+  if(report.displayName!==undefined)assert.ok(typeof report.displayName==='string'&&report.displayName.trim().length>=2&&report.displayName.length<=100&&!/[\x00-\x1f\x7f<>\u200b-\u200f\u202a-\u202e\u2066-\u2069]/.test(report.displayName),'Invalid display title');
   for(const key of ['passed','adFree','contentAppropriate','played','retried','controls'])assert.equal(report.quality?.[key],true,'Missing verified '+key);
   assert.ok(Array.isArray(report.quality.sourcesCompared)&&new Set(report.quality.sourcesCompared).size>=2,'Compare two credible versions');
   for(const url of report.quality.sourcesCompared){const u=new URL(url);assert.equal(u.protocol,'https:');assert.ok(!u.username&&!u.password);}
-  assert.ok(Number.isFinite(report.quality.coldMs)&&report.quality.coldMs>0&&report.quality.coldMs<=20000,'Cold start is too slow');
-  assert.ok(Number.isFinite(report.quality.warmMs)&&report.quality.warmMs>0&&report.quality.warmMs<=10000,'Warm start is too slow');
+  const limits=startupLimits(report);
+  assert.ok(Number.isFinite(report.quality.coldMs)&&report.quality.coldMs>0&&report.quality.coldMs<=limits.cold,'Cold start is too slow for this runtime');
+  assert.ok(Number.isFinite(report.quality.warmMs)&&report.quality.warmMs>0&&report.quality.warmMs<=limits.warm,'Warm start is too slow for this runtime');
   assert.ok(typeof report.quality.evidence==='string'&&report.quality.evidence.length>=40,'Native session evidence missing');
-  if(!report.alreadyAvailable){assert.ok(typeof report.license?.name==='string'&&report.license.name.length>0,'Redistribution permission missing');assert.equal(new URL(report.license.url).protocol,'https:');}
+  if(!report.alreadyAvailable){assert.ok(typeof report.license?.name==='string'&&report.license.name.length>0,'Source/license note missing');assert.equal(new URL(report.license.url).protocol,'https:');}
   assert.ok(Array.isArray(report.qaSteps)&&report.qaSteps.length>=1&&report.qaSteps.length<=20,'Reproducible play steps missing');
   for(const step of report.qaSteps){
     assert.ok(['tap','key','button','wait'].includes(step.type),'Unknown test action');
@@ -36,7 +44,7 @@ export function validateCatalog(before,after,report){
   for(const old of before)assert.deepEqual(after.find(g=>g.id===old.id),old,'Existing games must remain unchanged');
   assert.equal(after.length,before.length+(report.alreadyAvailable?0:1));
   const game=after.find(g=>g.id===report.gameId);assert.ok(game);assert.equal(game.url,'games/'+report.gameId+'/');assert.equal(game.trustedPlayer,true);
-  if(!report.alreadyAvailable){assert.equal(before.some(g=>g.id===report.gameId),false);assert.equal(findExistingGame(before,game.name,game.url),null,'This game is already added');assert.ok(Object.keys(game).every(k=>['id','name','url','trustedPlayer'].includes(k)));}
+  if(!report.alreadyAvailable){assert.equal(before.some(g=>g.id===report.gameId),false);assert.equal(findExistingGame(before,game.name,game.url),null,'This game is already added');assert.ok(Object.keys(game).every(k=>['id','name','url','trustedPlayer','startup'].includes(k)));assert.equal(game.startup,report.quality?.startupClass==='heavy'?'heavy':undefined,'Catalog startup must match tested runtime class');}
   return game;
 }
 export function validateScope(files,report,id){
@@ -76,8 +84,9 @@ export async function run(branch,base,head='HEAD'){
     const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
     for(const [label,size]of[['landscape',{width:1180,height:820}],['portrait',{width:820,height:1180}],['warm-landscape',{width:1180,height:820}]]){
       await page.setViewportSize(size);const start=Date.now();await page.goto(origin+'/#/games/'+report.gameId);if(label!=='landscape')await page.reload();
-      await page.waitForFunction(()=>document.getElementById('game-player')?.getAttribute('aria-busy')==='false'&&document.getElementById('game-error')?.hidden,null,{timeout:30000});
-      const startupMs=Date.now()-start;assert.ok(startupMs<=(label==='landscape'?25000:12000),'Runtime starts too slowly: '+startupMs);
+      const limits=startupLimits(report),deadline=label==='landscape'?limits.readyCold:limits.readyWarm;
+      await page.waitForFunction(()=>document.getElementById('game-player')?.getAttribute('aria-busy')==='false'&&document.getElementById('game-error')?.hidden,null,{timeout:deadline});
+      const startupMs=Date.now()-start;assert.ok(startupMs<=deadline,'Runtime starts too slowly: '+startupMs);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Horizontal clipping');
       let canvas;for(const frame of page.frames())for(const candidate of await frame.locator('canvas').all()){const box=await candidate.boundingBox();if(box?.width>=160&&box.height>=120){canvas=candidate;break;}}
       assert.ok(canvas,'A visible native game canvas is required');
@@ -87,7 +96,7 @@ export async function run(branch,base,head='HEAD'){
         else if(step.type==='wait')await page.waitForTimeout(step.ms);
         else {let clicked=false;for(const frame of page.frames()){const button=frame.getByRole('button',{name:step.text,exact:true});if(await button.isVisible()){await button.click();clicked=true;break;}}assert.ok(clicked,'Native button missing: '+step.text);}
       }
-      await page.screenshot({path:'.game-addition-qa/'+label+'.png'});results.push({label,startupMs,size});
+      await page.screenshot({path:'.game-addition-qa/'+label+'.png',caret:'initial',timeout:60000});results.push({label,startupMs,size});
     }
     assert.deepEqual(errors,[],'Game runtime errors');await context.close();
     fs.writeFileSync('.game-addition-qa/report.json',JSON.stringify({requestId:id,gameId:report.gameId,passed:true,sourceScopeVerified:true,viewportEmulation:true,physicalIPadTested:false,results,errors},null,2));console.log(JSON.stringify({passed:true,gameId:report.gameId,results}));

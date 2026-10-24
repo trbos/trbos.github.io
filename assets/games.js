@@ -69,7 +69,7 @@
       if (active !== state) return;
       loading.hidden = true; error.hidden = false;
       player.setAttribute('aria-busy','false');
-    },60000);
+    },game.startup==='heavy'?120000:60000);
     frame.src = game.url;
     frameHost.append(frame);
     return true;
@@ -79,7 +79,7 @@
   window.addEventListener('message',event=>{
     const state=active;
     if(!state?.game.trustedPlayer||event.source!==state.frame.contentWindow||event.origin!==location.origin||event.data?.id!==state.game.id)return;
-    if(event.data.type==='game:progress'){clearTimeout(state.timer);state.timer=setTimeout(()=>finish(state,true),60000);}
+    if(event.data.type==='game:progress'){clearTimeout(state.timer);state.timer=setTimeout(()=>finish(state,true),state.game.startup==='heavy'?120000:60000);}
     else if(event.data.type==='game:ready')finish(state);
     else if(event.data.type==='game:error')finish(state,true);
   });
