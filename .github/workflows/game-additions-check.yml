@@ -23,10 +23,28 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - run: npm ci --prefix .github/game-tools --ignore-scripts
+      - name: Check whether the game is ready
+        id: phase
+        env:
+          REQUEST_BRANCH: ${{ github.head_ref }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const id = process.env.REQUEST_BRANCH.slice('add-game/'.length);
+          assert.match(id, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+          const report = JSON.parse(fs.readFileSync('.game-requests/' + id + '.json', 'utf8'));
+          assert.equal(report.requestId, id);
+          assert.ok(['queued', 'finding', 'testing', 'adding', 'ready', 'unavailable'].includes(report.stage));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ready=' + (report.stage === 'ready') + '\n');
+          NODE
       - run: node --test .github/game-tools/quality.test.mjs
-      - run: .github/game-tools/node_modules/.bin/playwright install --with-deps chromium
+      - if: steps.phase.outputs.ready == 'true'
+        run: npm ci --prefix .github/game-tools --ignore-scripts
+      - if: steps.phase.outputs.ready == 'true'
+        run: .github/game-tools/node_modules/.bin/playwright install --with-deps chromium
       - name: Validate source, scope, layout and real runtime
+        if: steps.phase.outputs.ready == 'true'
         env:
           REQUEST_BRANCH: ${{ github.head_ref }}
           REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
