@@ -514,6 +514,14 @@
     }
   }
   function keepPolyTrackControl() {return verified && !!session && automatic.polytrack.enabled;}
+  async function submitGame(values) {
+    if (!verified || !session) throw new RequestError(401);
+    const version = epoch;
+    try {
+      if (!await checkOwner(session,version) || version !== epoch) throw new RequestError(401);
+      return await control('game-request-submit',session.accessToken,{requestId:values.id,name:values.name,url:values.url,clientKey:values.clientKey},12000);
+    } catch(error) {if(version===epoch&&[401,403].includes(error.status))forget();throw error;}
+  }
 
   function mount(container) {
     if (!(container instanceof HTMLElement)) throw new TypeError('Owner panel needs a container');
@@ -565,7 +573,7 @@
     if (!gameRequestsLoading) {
       gameRequestsLoading = new Promise((resolve,reject) => {
         const css = document.createElement('link');css.rel='stylesheet';css.href='./assets/owner-game-requests.css?v=1';document.head.append(css);
-        const script = document.createElement('script');script.src='./assets/owner-game-requests.js?v=1';
+        const script = document.createElement('script');script.src='./assets/owner-game-requests.js?v=queue-2';
         script.onload=resolve;script.onerror=reject;document.head.append(script);
       }).then(() => {
         gameRequests=window.createSiteOwnerGameRequests(window,host,async body => {
@@ -593,5 +601,5 @@
   }
   document.addEventListener('visibilitychange',resume);
   window.addEventListener('online',resume); window.addEventListener('offline',resume);
-  window.SiteOwner = Object.freeze({mount,onRoute,browserFailed,browserReady,keepPolyTrackControl});
+  window.SiteOwner = Object.freeze({mount,onRoute,browserFailed,browserReady,keepPolyTrackControl,submitGame,isOwner:()=>verified&&!!session});
 })();

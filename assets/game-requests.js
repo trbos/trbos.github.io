@@ -2,10 +2,10 @@
   'use strict';
   const API='https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/game-requests',COOKIE='trbos_game_requests',PENDING='trbos.game-request.pending.v1';
   const HEX=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
-  const STAGES={queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
+  const STAGES={waiting:'Queued',queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
-  const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.setAttribute('aria-labelledby','game-request-button-title');button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span id="game-request-button-title">Add a game!</span><span id="game-request-wait" class="game-request-wait" aria-live="polite">Estimating…</span></span>';grid.prepend(button);
+  const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-labelledby','game-request-button-title');button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span id="game-request-button-title">Add a game!</span><span id="game-request-wait" class="game-request-wait" aria-live="polite">Estimating…</span></span>';grid.prepend(button);
   const banner=env.document.createElement('button');banner.type='button';banner.className='container game-request-banner';banner.hidden=true;
   banner.innerHTML='<span class="game-request-banner-name"></span><span class="game-request-banner-stage"></span><progress max="100" aria-label="Active game request progress"></progress>';grid.before(banner);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
@@ -15,7 +15,7 @@
   const waitLabel=button.querySelector('.game-request-wait');
   submit.disabled=true;
   let key=null,snapshot=null,pending=null,existing=null,busy=false,timer=null,controller=null,ticket=0;
-  let statusFailed=false;
+  let statusFailed=false,owner=Boolean(env.SiteOwner?.isOwner?.());
   const watching=()=>String(env.location.hash||'').split('?')[0]==='#/games'&&env.document.visibilityState!=='hidden';
   function cookie(){
     const value=env.document.cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);
@@ -58,6 +58,7 @@
   }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
+    button.hidden=!owner&&(!snapshot||snapshot.paused===true);
     waitLabel.textContent=statusFailed?'Estimating…':activeWait(active);
     banner.hidden=!active;
     if(active){
@@ -67,8 +68,8 @@
       progress.hidden=active.progress===null;if(active.progress!==null)progress.value=active.progress;
       banner.setAttribute('aria-label',active.name+' · '+text);
     }
-    submit.disabled=busy||!snapshot?.ready||Boolean(active)||snapshot?.paused===true;
-    form.hidden=Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
+    submit.disabled=busy||!snapshot?.ready||(!owner&&(Boolean(active)||snapshot?.paused===true));
+    form.hidden=owner?!snapshot?.ready:Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
     form.elements.game.disabled=busy;form.elements.url.disabled=busy;
     result.hidden=!job&&!existing;
     if(existing){
@@ -93,12 +94,13 @@
     if(keepNotice)return;
     if(existing)notice.textContent='';
     else if(!snapshot?.ready&&!active)notice.textContent='Automatic additions need setup.';
-    else if(snapshot?.paused)notice.textContent='New requests paused.';
-    else if(other)notice.textContent='Another game is being added.';
+    else if(snapshot?.paused&&!owner)notice.textContent='New requests paused.';
+    else if(other&&!owner)notice.textContent='Another game is being added.';
     else if(active)notice.textContent='';
     else notice.textContent='';
   }
   async function request(body){
+    if(owner&&body.action==='submit'){if(!env.SiteOwner?.isOwner?.())throw Error('owner_required');return env.SiteOwner.submitGame({id:body.id,name:body.name,url:body.url,clientKey:key});}
     const abort=new env.AbortController();controller=abort;const timeout=env.setTimeout(()=>abort.abort(),12000);
     try{
       const response=await env.fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:abort.signal,body:JSON.stringify(body)});
@@ -106,7 +108,7 @@
     }finally{env.clearTimeout(timeout);if(controller===abort)controller=null;}
   }
   const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',paused:'New requests paused.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
-  function fail(error){statusFailed=true;waitLabel.textContent='Estimating…';if(dialog.open){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
+  function fail(error){statusFailed=true;waitLabel.textContent='Estimating…';if(dialog.open){notice.textContent=[401,403].includes(error?.status)?'Sign in again.':errors[error?.code||error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
   function schedule(){env.clearTimeout(timer);timer=null;if(env.document.visibilityState!=='hidden'&&(dialog.open||watching()))timer=env.setTimeout(()=>void refresh(),snapshot?.active||dialog.open?5000:15000);}
   async function refresh(){
     if(busy||!dialog.open&&!watching())return;const version=ticket;busy=true;retry.hidden=true;
@@ -130,6 +132,7 @@
   function open(){if(dialog.open)return;ticket++;busy=false;controller?.abort();dialog.showModal();notice.textContent='Checking…';void refresh();}
   button.addEventListener('click',open);form.addEventListener('submit',send);dialog.querySelector('.game-request-close').addEventListener('click',close);
   banner.addEventListener('click',open);
+  env.addEventListener('site:owner',event=>{owner=event.detail?.owner===true&&Boolean(env.SiteOwner?.isOwner?.());render();});
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});retry.addEventListener('click',()=>void refresh());
   env.document.addEventListener('visibilitychange',()=>{if(env.document.visibilityState==='hidden'){env.clearTimeout(timer);timer=null;}else if(dialog.open||watching())void refresh();});
   env.addEventListener('hashchange',()=>{if(!watching()){if(dialog.open)close();schedule();}else void refresh();});

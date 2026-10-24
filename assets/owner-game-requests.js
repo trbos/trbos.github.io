@@ -4,8 +4,8 @@
   section.innerHTML='<div class="owner-game-request-heading"><h2>Game requests</h2><button type="button" class="owner-game-request-pause">Pause requests</button><button type="button" class="owner-game-request-refresh">Refresh</button></div><p role="status" aria-live="polite"></p><div class="owner-game-request-list"></div>';
   host.append(section);
   const pause=section.querySelector('.owner-game-request-pause'),refresh=section.querySelector('.owner-game-request-refresh'),status=section.querySelector('[role=status]'),list=section.querySelector('.owner-game-request-list');
-  const stages={queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
-  const active=new Set(['queued','finding','testing','adding','publishing']);
+  const stages={waiting:'Queued',queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
+  const active=new Set(['waiting','queued','finding','testing','adding','publishing']);
   const drafts=new Map();let enabled=false,busy=false,paused=false,ticket=0,timer=null;
   const visible=()=>enabled&&env.document.visibilityState!=='hidden'&&env.location.hash.split('?')[0]==='#/owner';
   function controls(){pause.disabled=busy;refresh.disabled=busy;pause.textContent=paused?'Resume requests':'Pause requests';for(const field of list.querySelectorAll('button,input'))field.disabled=busy;}
