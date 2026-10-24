@@ -22,6 +22,7 @@ export function catalog(text){
 export function validateReport(report,id){
   assert.equal(report.requestId,id);assert.equal(report.stage,'ready','Game is not ready for verification');assert.ok(slug.test(report.gameId));
   assert.equal(typeof report.name,'string');assert.ok(report.name.length>=2&&report.name.length<=100);
+  if(report.displayName!==undefined)assert.ok(typeof report.displayName==='string'&&report.displayName.trim().length>=2&&report.displayName.length<=100&&!/[\x00-\x1f\x7f<>\u200b-\u200f\u202a-\u202e\u2066-\u2069]/.test(report.displayName),'Invalid display title');
   for(const key of ['passed','adFree','contentAppropriate','played','retried','controls'])assert.equal(report.quality?.[key],true,'Missing verified '+key);
   assert.ok(Array.isArray(report.quality.sourcesCompared)&&new Set(report.quality.sourcesCompared).size>=2,'Compare two credible versions');
   for(const url of report.quality.sourcesCompared){const u=new URL(url);assert.equal(u.protocol,'https:');assert.ok(!u.username&&!u.password);}

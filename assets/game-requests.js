@@ -6,12 +6,15 @@
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
   const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.textContent='Add a game!';grid.prepend(button);
+  const banner=env.document.createElement('button');banner.type='button';banner.className='container game-request-banner';banner.hidden=true;
+  banner.innerHTML='<span class="game-request-banner-name"></span><span class="game-request-banner-stage"></span><progress max="100" aria-label="Active game request progress"></progress>';grid.before(banner);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
   dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
   const form=dialog.querySelector('form'),submit=form.querySelector('[type=submit]'),notice=dialog.querySelector('.game-request-notice'),result=dialog.querySelector('.game-request-result'),stage=dialog.querySelector('.game-request-stage'),bar=result.querySelector('progress'),detail=result.querySelector('.game-request-detail'),play=result.querySelector('a'),retry=dialog.querySelector('.game-request-retry');
   submit.disabled=true;
   let key=null,snapshot=null,pending=null,existing=null,busy=false,timer=null,controller=null,ticket=0;
+  const watching=()=>String(env.location.hash||'').split('?')[0]==='#/games'&&env.document.visibilityState!=='hidden';
   function cookie(){
     const value=env.document.cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);
     if(HEX.test(value||''))return value;
@@ -44,6 +47,14 @@
   }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
+    banner.hidden=!active;
+    if(active){
+      const name=banner.querySelector('.game-request-banner-name'),label=banner.querySelector('.game-request-banner-stage'),progress=banner.querySelector('progress');
+      if(name.textContent!==active.name)name.textContent=active.name;
+      const text=STAGES[active.stage]+(active.progress===null?'':' · '+active.progress+'%');if(label.textContent!==text)label.textContent=text;
+      progress.hidden=active.progress===null;if(active.progress!==null)progress.value=active.progress;
+      banner.setAttribute('aria-label',active.name+' · '+text);
+    }
     submit.disabled=busy||!snapshot?.ready||Boolean(active)||snapshot?.paused===true;
     form.hidden=Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
     form.elements.game.disabled=busy;form.elements.url.disabled=busy;
@@ -79,11 +90,11 @@
     }finally{env.clearTimeout(timeout);if(controller===abort)controller=null;}
   }
   const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',paused:'New requests paused.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
-  function fail(error){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}
-  function schedule(){env.clearTimeout(timer);timer=null;if(dialog.open&&env.document.visibilityState!=='hidden')timer=env.setTimeout(()=>void refresh(),5000);}
+  function fail(error){if(dialog.open){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
+  function schedule(){env.clearTimeout(timer);timer=null;if(env.document.visibilityState!=='hidden'&&(dialog.open||watching()))timer=env.setTimeout(()=>void refresh(),snapshot?.active||dialog.open?5000:15000);}
   async function refresh(){
-    if(busy||!dialog.open)return;const version=ticket;busy=true;retry.hidden=true;
-    try{if(!key)key=cookie();pending=storedPending();const value=await request(pending?{action:'submit',id:pending.id,name:pending.name,url:pending.url}:{action:'status'});if(version!==ticket)return;accept(value);}
+    if(busy||!dialog.open&&!watching())return;const version=ticket;busy=true;retry.hidden=true;
+    try{if(!key)key=cookie();pending=storedPending();const value=await request(dialog.open&&pending?{action:'submit',id:pending.id,name:pending.name,url:pending.url}:{action:'status'});if(version!==ticket)return;accept(value);}
     catch(error){if(version===ticket)fail(error);}finally{if(version===ticket){busy=false;if(snapshot)render(true);schedule();}}
   }
   async function send(event){
@@ -99,10 +110,13 @@
       if(version===ticket)fail(error);
     }finally{if(version===ticket){busy=false;if(snapshot)render(true);schedule();}}
   }
-  function close(){ticket++;busy=false;env.clearTimeout(timer);timer=null;controller?.abort();dialog.close();}
-  function open(){if(dialog.open)return;ticket++;dialog.showModal();notice.textContent='Checking…';void refresh();}
+  function close(){ticket++;busy=false;env.clearTimeout(timer);timer=null;controller?.abort();dialog.close();schedule();}
+  function open(){if(dialog.open)return;ticket++;busy=false;controller?.abort();dialog.showModal();notice.textContent='Checking…';void refresh();}
   button.addEventListener('click',open);form.addEventListener('submit',send);dialog.querySelector('.game-request-close').addEventListener('click',close);
+  banner.addEventListener('click',open);
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});retry.addEventListener('click',()=>void refresh());
-  env.document.addEventListener('visibilitychange',()=>{if(env.document.visibilityState==='hidden'){env.clearTimeout(timer);timer=null;}else if(dialog.open)void refresh();});
+  env.document.addEventListener('visibilitychange',()=>{if(env.document.visibilityState==='hidden'){env.clearTimeout(timer);timer=null;}else if(dialog.open||watching())void refresh();});
+  env.addEventListener('hashchange',()=>{if(!watching()){if(dialog.open)close();schedule();}else void refresh();});
+  if(watching())void refresh();
   return Object.freeze({open,close,refresh});
 });

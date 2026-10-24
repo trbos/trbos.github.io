@@ -1,5 +1,18 @@
 # Automatic game additions
 
+## Keep credit use low
+
+Use one focused worker. Do not spawn agents, start more cloud chats, request AI
+reviews, audit the repository, or redesign upstream gameplay. Read only relevant
+files and bounded excerpts; never dump minified bundles, binaries or long logs
+into context. Reuse upstream builds and the existing player. Batch commands and
+write one reusable playtest script. Run the complete local validator once after
+meaningful playtesting; rerun only checks affected by an actual fix. Keep source
+research to the two versions and two-minute initial search below. Stop after the
+final upload confirms its SHA. Do not poll CI or wait for deployment: non-AI
+scripts handle integration, publication and hosted verification. Never launch a
+replacement AI worker to fix a routine publication delay or merge conflict.
+
 This is the trusted workflow for the owner's Codex cloud worker. Work only on
 the `add-game/<request UUID>` PR branch specified by the authorized `maplehe7`
 account's comment. This is the owner's connected Codex account and has write
@@ -21,7 +34,12 @@ change runtime domains, modify this policy or workflows, or change other games.
 1. Compare two credible sources/versions, with about two minutes of initial
    source research. Stop searching once a suitable version is found; avoid
    unrelated audits and redesigns. Prefer official, maintained
-   open-source versions. Check the actual
+   open-source versions. From the first `finding` report onward, set
+   `displayName` to the clean game title with correct spelling/capitalization
+   (for example "Eaglercraft" or "Crossy Road"). Remove request wording such
+   as "add", "please", and version-selection instructions from the display
+   title. Keep the original `name` unchanged for request identity/replay.
+   Check the actual
    code and build. Do not use remote iframe-only copies, advertisements,
    trackers, account gates, malicious downloads, inappropriate sexual/hate
    content, or real-money gambling. Do not confuse ordinary cartoon combat

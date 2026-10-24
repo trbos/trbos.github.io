@@ -5,6 +5,7 @@ const report=()=>({requestId:id,name:'Example game',stage:'ready',gameId:'new-ga
 const old={id:'existing',name:'Existing game',url:'games/existing/',trustedPlayer:true},fresh={id:'new-game',name:'New game',url:'games/new-game/',trustedPlayer:true};
 test('quality requires content, native play/retry, two sources, source notes, startup evidence and safe CI actions',()=>{
   assert.doesNotThrow(()=>validateReport(report(),id));
+  assert.doesNotThrow(()=>validateReport({...report(),displayName:'Readable Game Title'},id));assert.throws(()=>validateReport({...report(),displayName:'<bad>'},id));
   for(const change of [r=>r.stage='testing',r=>r.quality.played=false,r=>r.quality.adFree=false,r=>r.quality.sourcesCompared=['https://example.com'],r=>delete r.license,r=>r.quality.warmMs=50000,r=>r.qaSteps=[{type:'shell',command:'anything'}],r=>r.qaSteps=[{type:'wait',ms:50000}]]){const r=report();change(r);assert.throws(()=>validateReport(r,id));}
 });
 test('heavy runtimes get realistic startup budgets, source permission uncertainty is informational, and native checks stay required',()=>{
