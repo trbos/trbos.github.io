@@ -1,0 +1,10 @@
+{
+	"name": "Crossy Road",
+	"version": "1.0.0",
+	"description": "Crossy Road",
+	"manifest_version": 3,
+	"permissions": ["activeTab"],
+	"action": {
+		"default_popup": "index.html"
+	}
+}
