@@ -16,32 +16,11 @@
   const error = document.getElementById('game-error');
   let active = null;
 
-  const covers = Object.freeze({
-    hextris: 'assets/covers/hextris.webp',
-    'geometry-dash': 'assets/covers/geometry-dash.webp',
-    jambling: 'assets/covers/jambling.webp',
-    'block-blast': 'assets/covers/block-blast.webp',
-    archers: 'assets/covers/archers.webp',
-    'crossy-road': 'assets/covers/crossy-road.webp',
-    eaglercraft: 'assets/covers/eaglercraft.webp'
-  });
-
   for (const game of games) {
     const link = document.createElement('a');
     link.href = '#/games/' + game.id;
     link.className = 'game-card';
-    const cover = document.createElement('img');
-    cover.className = 'game-card-cover';
-    cover.src = covers[game.id] || 'games/' + encodeURIComponent(game.id) + '/cover.webp';
-    cover.alt = '';
-    cover.setAttribute('aria-hidden', 'true');
-    cover.width = 1200;
-    cover.height = 675;
-    cover.addEventListener('error', () => cover.remove(), {once:true});
-    const title = document.createElement('span');
-    title.className = 'game-card-title';
-    title.textContent = game.name;
-    link.append(cover, title);
+    link.textContent = game.name;
     grid.append(link);
   }
 
