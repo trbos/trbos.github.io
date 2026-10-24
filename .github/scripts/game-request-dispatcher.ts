@@ -10,7 +10,7 @@ export function createGameDispatcher(deps:Dependencies){
   const fetcher=deps.fetch||fetch;
   const commentLogin=deps.commentLogin||'trbos';
   async function gh(path:string,method='GET',body?:unknown){
-    const ownerAction=method==='POST'&&(path==='/pulls'||/^\/issues\/\d+\/comments$/.test(path));
+    const ownerAction=method==='POST'&&(path==='/pulls'||/^\/issues\/\d+\/comments$/.test(path))||method==='PUT'&&/^\/pulls\/\d+\/update-branch$/.test(path);
     const token=ownerAction?deps.commentToken||deps.token:deps.token;
     const response=await fetcher(BASE+path,{method,headers:{authorization:'Bearer '+token,accept:'application/vnd.github+json','content-type':'application/json','x-github-api-version':'2022-11-28'},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(20000)});
     if(!response.ok){const error=Error('github_'+response.status) as Error&{status:number};error.status=response.status;throw error;}return response.status===204?null:response.json();
@@ -37,6 +37,17 @@ export function createGameDispatcher(deps:Dependencies){
     if(report.stage==='unavailable')return{stage:'unavailable',detail:typeof report.detail==='string'?report.detail.slice(0,180):'No suitable version found.'};
     if(report.stage!=='ready')return{stage:STAGES.includes(report.stage)&&STAGES.indexOf(report.stage)>=STAGES.indexOf(job.stage)?report.stage:job.stage,head:pr.head.sha};
     if(typeof report.gameId!=='string'||!/^[a-z0-9][a-z0-9-]{0,79}$/.test(report.gameId)||!report.quality?.passed)throw Error('invalid_report');
+    if(!pr.merged){
+      const main=await gh('/git/ref/heads/main');
+      const comparison=await gh('/compare/'+main.object.sha+'...'+pr.head.sha);
+      if(comparison.behind_by>0){
+        // Wait until the worker has finished, then integrate current main and
+        // rerun CI. Owner authorization triggers the synchronize workflow;
+        // GITHUB_TOKEN would suppress that event. Never replace worker commits.
+        await gh('/pulls/'+pr.number+'/update-branch','PUT',{expected_head_sha:pr.head.sha});
+        return{stage:'testing',base:main.object.sha,head:pr.head.sha};
+      }
+    }
     const checks=await gh('/commits/'+pr.head.sha+'/check-runs?per_page=100');
     const quality=checks.check_runs.find((c:Value)=>c.name==='game-addition-quality'&&c.app?.slug==='github-actions'&&c.head_sha===pr.head.sha);
     if(!quality||quality.status!=='completed')return{stage:'testing',head:pr.head.sha};
