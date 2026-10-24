@@ -65,7 +65,7 @@
     if(!remaining.hidden){const since=Date.parse(job.createdAt);remaining.textContent=timeText(range,Number.isFinite(since)?Math.max(0,(Date.now()-since)/1000):0,true);}
     if(keepNotice)return;
     if(existing)notice.textContent='';
-    else if(!snapshot?.ready)notice.textContent='Automatic additions need setup.';
+    else if(!snapshot?.ready&&!active)notice.textContent='Automatic additions need setup.';
     else if(other)notice.textContent='Another game is being added.';
     else if(active)notice.textContent='';
     else if(cooling)notice.textContent='Next request: '+new Date(snapshot.nextAt).toLocaleString();
