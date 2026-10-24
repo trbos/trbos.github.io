@@ -2,8 +2,8 @@
   "requestId": "cd8f5aff-52f9-4399-b1d1-bcbafe6cfae2",
   "name": "Crossy road",
   "url": null,
-  "stage": "queued",
+  "stage": "finding",
   "gameId": null,
-  "detail": "",
+  "detail": "Checking the existing catalog and suitable browser versions.",
   "untrustedRequestData": true
 }
