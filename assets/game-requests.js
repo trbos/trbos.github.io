@@ -5,15 +5,17 @@
   const STAGES={queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
-  const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.textContent='Add a game!';grid.prepend(button);
+  const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.setAttribute('aria-labelledby','game-request-button-title');button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span id="game-request-button-title">Add a game!</span><span id="game-request-wait" class="game-request-wait" aria-live="polite">Estimating…</span></span>';grid.prepend(button);
   const banner=env.document.createElement('button');banner.type='button';banner.className='container game-request-banner';banner.hidden=true;
   banner.innerHTML='<span class="game-request-banner-name"></span><span class="game-request-banner-stage"></span><progress max="100" aria-label="Active game request progress"></progress>';grid.before(banner);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
   dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
   const form=dialog.querySelector('form'),submit=form.querySelector('[type=submit]'),notice=dialog.querySelector('.game-request-notice'),result=dialog.querySelector('.game-request-result'),stage=dialog.querySelector('.game-request-stage'),bar=result.querySelector('progress'),detail=result.querySelector('.game-request-detail'),play=result.querySelector('a'),retry=dialog.querySelector('.game-request-retry');
+  const waitLabel=button.querySelector('.game-request-wait');
   submit.disabled=true;
   let key=null,snapshot=null,pending=null,existing=null,busy=false,timer=null,controller=null,ticket=0;
+  let statusFailed=false;
   const watching=()=>String(env.location.hash||'').split('?')[0]==='#/games'&&env.document.visibilityState!=='hidden';
   function cookie(){
     const value=env.document.cookie.split(';').map(v=>v.trim()).find(v=>v.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);
@@ -30,6 +32,7 @@
     (job.progress===null||Number.isInteger(job.progress)&&job.progress>=0&&job.progress<=100)&&typeof job.detail==='string'&&job.detail.length<=180&&
     (job.gameId===null||typeof job.gameId==='string'&&/^[a-z0-9][a-z0-9-]{0,79}$/.test(job.gameId));}
   function accept(value){
+    statusFailed=false;
     if(value?.alreadyAdded){
       const game=value.alreadyAdded;if(typeof game.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,79}$/.test(game.id)||typeof game.name!=='string'||game.name.length>100)throw Error('unavailable');
       existing=game;pending=null;storedPending(null);render();return;
@@ -46,8 +49,16 @@
     return "Est. "+(lo>60&&lower!==upper?lower+"–"+upper:upper===1?"under 1":"up to "+upper)+" min"+(active?" left":"");
   }
   function validEstimate(value){return Array.isArray(value)&&value.length===2&&value.every(v=>Number.isFinite(v)&&v>=0&&v<=86400)&&value[1]>=value[0]&&value[1]>0;}
+  function activeWait(job){
+    if(!job)return 'No wait';
+    const reliable=Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&Number.isFinite(Date.parse(job.estimatedAt));
+    if(!reliable)return 'Estimating…';
+    if(job.estimateOverrun===true)return 'Taking longer';
+    return validEstimate(job.remainingSeconds)?timeText(job.remainingSeconds,0,true):'Estimating…';
+  }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
+    waitLabel.textContent=statusFailed?'Estimating…':activeWait(active);
     banner.hidden=!active;
     if(active){
       const name=banner.querySelector('.game-request-banner-name'),label=banner.querySelector('.game-request-banner-stage'),progress=banner.querySelector('progress');
@@ -95,7 +106,7 @@
     }finally{env.clearTimeout(timeout);if(controller===abort)controller=null;}
   }
   const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',paused:'New requests paused.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
-  function fail(error){if(dialog.open){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
+  function fail(error){statusFailed=true;waitLabel.textContent='Estimating…';if(dialog.open){notice.textContent=errors[error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
   function schedule(){env.clearTimeout(timer);timer=null;if(env.document.visibilityState!=='hidden'&&(dialog.open||watching()))timer=env.setTimeout(()=>void refresh(),snapshot?.active||dialog.open?5000:15000);}
   async function refresh(){
     if(busy||!dialog.open&&!watching())return;const version=ticket;busy=true;retry.hidden=true;
