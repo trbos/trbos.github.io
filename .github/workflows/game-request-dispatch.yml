@@ -1,0 +1,30 @@
+name: Game request dispatcher
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  pages: write
+concurrency:
+  group: game-request-dispatch
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Check the single active game request
+        env:
+          PUMP_TOKEN: ${{ secrets.GAME_REQUEST_PUMP_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          CODEX_COMMENT_TOKEN: ${{ secrets.CODEX_COMMENT_TOKEN }}
+        run: node .github/scripts/pump-game-requests.mjs

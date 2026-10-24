@@ -1,0 +1,33 @@
+name: Game addition checks
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: game-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  quality:
+    name: game-addition-quality
+    if: startsWith(github.head_ref, 'add-game/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: npm ci --prefix .github/game-tools --ignore-scripts
+      - run: node --test .github/game-tools/quality.test.mjs
+      - run: .github/game-tools/node_modules/.bin/playwright install --with-deps chromium
+      - name: Validate source, scope, layout and real runtime
+        env:
+          REQUEST_BRANCH: ${{ github.head_ref }}
+          REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node .github/scripts/check-game-addition.mjs "$REQUEST_BRANCH" "$REQUEST_BASE"
