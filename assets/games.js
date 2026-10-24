@@ -2,7 +2,8 @@
   'use strict';
   const games = Object.freeze([
     Object.freeze({id:'geometry-dash',name:'Geometry Dash',url:'https://web-dashers.github.io/',external:true}),
-    Object.freeze({id:'jambling',name:'Jambling',url:'https://snoozingmax.github.io/Jambling/',external:true})
+    Object.freeze({id:'jambling',name:'Jambling',url:'https://snoozingmax.github.io/Jambling/',external:true}),
+    Object.freeze({id:'block-blast',name:'Block Blast',url:'games/block-blast/',trustedPlayer:true})
   ]);
   const grid = document.getElementById('games');
   const player = document.getElementById('game-player');
@@ -28,6 +29,12 @@
     active = null;
   }
 
+  function finish(state,failed=false) {
+    if(active!==state)return;
+    clearTimeout(state.timer);loading.hidden=true;error.hidden=!failed;
+    player.setAttribute('aria-busy','false');
+  }
+
   function open(id) {
     const game = get(id);
     if (!game) return false;
@@ -41,12 +48,12 @@
     frame.allow = 'autoplay; fullscreen; gamepad; clipboard-write';
     frame.allowFullscreen = true;
     frame.referrerPolicy = 'no-referrer';
-    frame.setAttribute('sandbox',game.external ? 'allow-scripts allow-same-origin allow-forms allow-pointer-lock' : 'allow-scripts allow-pointer-lock');
+    if(game.external)frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-pointer-lock');
+    else if(!game.trustedPlayer)frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');
     frame.addEventListener('load',() => {
       if (active !== state) return;
-      clearTimeout(state.timer);
-      loading.hidden = true; error.hidden = true;
-      player.setAttribute('aria-busy','false');
+      if(game.trustedPlayer){loading.hidden=true;return;}
+      finish(state);
     });
     state.timer = setTimeout(() => {
       if (active !== state) return;
@@ -59,6 +66,12 @@
   }
 
   document.getElementById('game-retry').addEventListener('click',() => {if (active) open(active.game.id);});
+  window.addEventListener('message',event=>{
+    const state=active;
+    if(!state?.game.trustedPlayer||event.source!==state.frame.contentWindow||event.origin!==location.origin||event.data?.id!==state.game.id)return;
+    if(event.data.type==='game:ready')finish(state);
+    else if(event.data.type==='game:error')finish(state,true);
+  });
   window.addEventListener('pagehide',close);
   window.SiteGames = Object.freeze({get,open,close,focus:() => {if (!active) return false;active.frame.focus();return true;}});
 })();
