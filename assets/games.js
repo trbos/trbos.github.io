@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const games = Object.freeze([
+    Object.freeze({"id":"hextris","name":"Hextris","url":"games/hextris/","trustedPlayer":true}),
     Object.freeze({"id":"geometry-dash","name":"Geometry Dash","url":"games/geometry-dash/","trustedPlayer":true}),
     Object.freeze({"id":"jambling","name":"Jambling","url":"https://snoozingmax.github.io/Jambling/","external":true}),
     Object.freeze({"id":"block-blast","name":"Block Blast","url":"games/block-blast/","trustedPlayer":true}),

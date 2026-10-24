@@ -1,0 +1,12 @@
+Hextris Lite 2.1.2
+
+Based on Hextris Lite at commit a55bf9f3c6137e51a9ef919b7cd5e2dd565ef6b7,
+which is based on Hextris by Logan Engstrom, Garrett Finucane, Noah Moroze,
+and Michael Yang. The included game is licensed under GPL-3.0-or-later; see
+LICENSE.md.
+
+Modifications for this site:
+- Added a restrictive offline Content Security Policy.
+- Added adapter.js for local host readiness reporting.
+- Disabled restoration of legacy serialized runs because it requires unsafe
+  JavaScript evaluation; high scores remain stored locally.
