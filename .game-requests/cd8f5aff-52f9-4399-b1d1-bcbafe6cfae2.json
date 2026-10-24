@@ -26,15 +26,22 @@
     "url": "https://github.com/SepraDC/crossy-js"
   },
   "qaSteps": [
-    {"type": "button", "text": "▲"},
-    {"type": "wait", "ms": 400},
-    {"type": "button", "text": "▲"},
-    {"type": "wait", "ms": 400},
-    {"type": "button", "text": "◀"},
-    {"type": "wait", "ms": 400},
-    {"type": "button", "text": "▲"},
-    {"type": "wait", "ms": 400},
-    {"type": "button", "text": "▶"},
-    {"type": "wait", "ms": 400}
-  ]
+    {
+      "type": "button",
+      "text": "◀"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "button",
+      "text": "▶"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    }
+  ],
+  "displayName": "Crossy Road"
 }
