@@ -18,9 +18,9 @@
       "https://eaglercraft.is/download/EaglercraftX_1.8_u53_Offline_Signed.zip",
       "https://eaglercraft.is/download/Eaglercraft_1.12.2_u3_WASM_Offline.zip"
     ],
-    "coldMs": 80000,
-    "warmMs": 50000,
-    "evidence": "Visible Edge playtest: EaglercraftX 1.8.8u53 loaded Survival; keyboard movement changed position, and Save and Quit followed by reopen restored the same world and position. iPad landscape emulation created a Survival world and showed the D-pad; a forward touch changed the view while the integer XYZ remained x=-98,y=68,z=256, so touch displacement is inconclusive. See eagler18-interaction.png, eagler-touch-survival-before.png and eagler-touch-survival-after.png. No page errors were observed.",
+    "coldMs": 7993,
+    "warmMs": 9318,
+    "evidence": "Visible Edge playtest: EaglercraftX 1.8.8u53 loaded Survival; keyboard movement changed position, and Save and Quit followed by reopen restored the same world and position. iPad landscape emulation created a Survival world and showed the D-pad; a forward touch changed the view while the integer XYZ remained x=-98,y=68,z=256, so touch displacement is inconclusive. See eagler18-interaction.png, eagler-touch-survival-before.png and eagler-touch-survival-after.png. The full checker measured 7993 ms cold landscape, 9078 ms portrait and 9318 ms warm landscape, with no page errors.",
     "startupClass": "heavy",
     "startupReason": "This is an 18 MB self-contained Minecraft JavaScript build with a compiled 3D runtime, world generation and local save data; first session startup includes its sound and profile setup.",
     "selection": {
@@ -77,3 +77,4 @@
     {"type":"key","key":"Space"}
   ]
 }
+
