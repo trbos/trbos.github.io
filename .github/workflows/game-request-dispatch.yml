@@ -28,4 +28,5 @@ jobs:
           PUMP_TOKEN: ${{ secrets.GAME_REQUEST_PUMP_TOKEN }}
           GH_TOKEN: ${{ github.token }}
           CODEX_COMMENT_TOKEN: ${{ secrets.CODEX_COMMENT_TOKEN }}
+          CODEX_COMMENT_LOGIN: maplehe7
         run: node .github/scripts/pump-game-requests.mjs

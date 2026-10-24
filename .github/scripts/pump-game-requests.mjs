@@ -6,5 +6,5 @@ const rpc=async args=>{
   if(response.status===503){const error=Error('worker_not_ready');error.disabled=true;throw error;}
   if(!response.ok)throw Error('Queue request failed: '+response.status);return response.json();
 };
-try{console.log(JSON.stringify(await createGameDispatcher({token:process.env.GH_TOKEN,commentToken,rpc})()));}
+try{console.log(JSON.stringify(await createGameDispatcher({token:process.env.GH_TOKEN,commentToken,commentLogin:process.env.CODEX_COMMENT_LOGIN,rpc})()));}
 catch(error){if(error.disabled){console.log('Game worker is not ready.');process.exit(0);}throw error;}
