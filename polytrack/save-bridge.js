@@ -177,7 +177,8 @@
         }
         return false;
       }
-      progressComplete = !result.conflicts.some(conflict => ['profile','record','track'].includes(conflict.type));
+      // Matching profile identity may have newer cosmetic/name choices on GitHub.
+      progressComplete = !result.conflicts.some(conflict => ['profile','record','track'].includes(conflict.type) && conflict.reason !== 'profile-details-differ');
       return true;
     };
     return env.navigator.locks?.request ? env.navigator.locks.request('polytrack-save-handoff-v1', run) : run();
