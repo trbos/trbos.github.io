@@ -16,6 +16,7 @@ export async function uploadGameAddition(id,base,{cwd=process.cwd(),fetcher=fetc
   const body=JSON.stringify({requestId:id,files});
   for(let attempt=0;attempt<5;attempt++){
     const response=await fetcher('https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/game-requests',{method:'POST',headers:{authorization:'Bearer '+token,'content-type':'application/json'},body,signal:AbortSignal.timeout(45000)});
+    if(response.status===409){let value;try{value=await response.clone().json();}catch{}if(value?.error==='request_not_active')throw Error('Request is no longer active. Stop work; do not retry or create a replacement.');}
     if([409,503].includes(response.status)&&attempt<4){await new Promise(r=>setTimeout(r,3000));continue;}
     if(!response.ok)throw Error('Game result upload failed: '+response.status);
     const result=await response.json();if(!/^[a-f0-9]{40}$/.test(result.sha||''))throw Error('Upload did not confirm a commit');

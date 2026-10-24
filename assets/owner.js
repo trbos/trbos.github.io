@@ -12,6 +12,7 @@
   const PENDING_KEY = 'trbos.site-owner.pending.v1';
   let host = null, fields = null, session = null, verified = false;
   let backups = null, backupsLoading = null, ownerCheck = null;
+  let gameRequests = null, gameRequestsLoading = null;
   let busy = false, operation = '', epoch = 0, pending = null;
   let currentRoute = location.hash.slice(2).split('?')[0] || 'home';
   let selectedTarget = 'browser', operationTarget = 'browser', configRevision = 0;
@@ -198,7 +199,7 @@
   function render() {
     if (!fields) return;
     host.hidden = currentRoute !== 'owner'; fields.login.hidden = verified; fields.controls.hidden = !verified;
-    fields.history.hidden = !verified; backups?.setOwner(verified);
+    fields.history.hidden = !verified; backups?.setOwner(verified); gameRequests?.setOwner(verified);
     for (const field of [fields.username,fields.pin,fields.signin,fields.name,fields.auto]) field.disabled = busy;
     fields.name.readOnly = pending?.target === selectedTarget;
     fields.rotate.disabled = busy || !!pending;
@@ -560,6 +561,23 @@
         });
         backups.setOwner(verified);
       }).catch(() => {backupsLoading=null;if(verified)status('Backups unavailable. Reload.');});
+    }
+    if (!gameRequestsLoading) {
+      gameRequestsLoading = new Promise((resolve,reject) => {
+        const css = document.createElement('link');css.rel='stylesheet';css.href='./assets/owner-game-requests.css?v=1';document.head.append(css);
+        const script = document.createElement('script');script.src='./assets/owner-game-requests.js?v=1';
+        script.onload=resolve;script.onerror=reject;document.head.append(script);
+      }).then(() => {
+        gameRequests=window.createSiteOwnerGameRequests(window,host,async body => {
+          if (!verified || !session) throw new RequestError(401);
+          const version=epoch;
+          try {
+            if (!await checkOwner(session,version)) throw new RequestError(401);
+            return await control(body.action,session.accessToken,Object.fromEntries(Object.entries(body).filter(([key])=>key!=='action')),body.action==='game-request-delete'?30000:12000);
+          } catch(error) {if(version===epoch&&[401,403].includes(error.status))forget();throw error;}
+        });
+        gameRequests.setOwner(verified);
+      }).catch(() => {gameRequestsLoading=null;if(verified)status('Game requests unavailable. Reload.');});
     }
     return container;
   }
