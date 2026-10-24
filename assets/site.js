@@ -3,7 +3,11 @@
   const CONTROL_URL = 'https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/site-control';
   const POLYTRACK_URL = location.origin + '/polytrack/';
   const ORIGIN_KEY = 'siteBrowserOrigin';
-  const validOrigin = value => typeof value === 'string' && /^https:\/\/[a-z](?:[a-z0-9-]{0,6}[a-z0-9])?--wordbuilder--675vggg6lnyg\.code\.run$/.test(value) && !/^https:\/\/(?:p01|launch)--/.test(value);
+  const validOrigin = (value,target = 'browser') => {
+    if (typeof value !== 'string') return false;
+    const match = /^https:\/\/([a-z](?:[a-z0-9-]{0,6}[a-z0-9])?)--wordbuilder--675vggg6lnyg\.code\.run$/.exec(value);
+    return !!match && !match[1].includes('--') && (target === 'polytrack' && match[1] === 'launch' || !['p01','launch','admin','api','www','assets','internal','root'].includes(match[1]));
+  };
   let browserOrigin = 'https://browse--wordbuilder--675vggg6lnyg.code.run';
   try { const saved = localStorage.getItem(ORIGIN_KEY); if (validOrigin(saved)) browserOrigin = saved; } catch {}
   const TOOLS = {
@@ -27,6 +31,7 @@
   let active = null, currentPage = null;
   let configRequest = null;
   let configVersion = 0;
+  let configRevision = 0;
   let browserSite = readSite(new URLSearchParams(location.search).get('url'));
 
   function setRuntimeOrigin(value) {
@@ -44,9 +49,12 @@
       .then(response => response.ok ? response.json() : null)
       .then(data => {
         if (version !== configVersion) return false;
+        if (!validOrigin(data?.runtimeOrigin) || !validOrigin(data?.polytrackOrigin,'polytrack') || data.runtimeOrigin === data.polytrackOrigin ||
+          !Number.isSafeInteger(data?.configRevision) || data.configRevision < 1 || data.configRevision < configRevision) return false;
+        configRevision = data.configRevision;
         const changed = setRuntimeOrigin(data?.runtimeOrigin);
-        if (changed) window.dispatchEvent(new CustomEvent('site:browser-config',{detail:{runtimeOrigin:browserOrigin}}));
-        if (typeof data?.polytrackOrigin === 'string') window.dispatchEvent(new CustomEvent('site:polytrack-config',{detail:{polytrackOrigin:data.polytrackOrigin}}));
+        if (validOrigin(data?.runtimeOrigin)) window.dispatchEvent(new CustomEvent('site:browser-config',{detail:{runtimeOrigin:browserOrigin,configRevision}}));
+        if (typeof data?.polytrackOrigin === 'string') window.dispatchEvent(new CustomEvent('site:polytrack-config',{detail:{polytrackOrigin:data.polytrackOrigin,configRevision}}));
         if (changed && active?.frame && new URL(active.frame.src).origin !== browserOrigin) openBrowser();
         return changed;
       }).catch(() => false)
@@ -57,12 +65,15 @@
   window.SiteOwner?.mount(owner);
   window.addEventListener('site:owner',event => { ownerLink.hidden = event.detail?.owner !== true; });
   window.addEventListener('site:browser-config',event => {
+    if (!validOrigin(event.detail?.runtimeOrigin) || !Number.isSafeInteger(event.detail?.configRevision) || event.detail.configRevision < 1 || event.detail.configRevision < configRevision) return;
+    configRevision = event.detail.configRevision;
     configVersion++;
     if (setRuntimeOrigin(event.detail?.runtimeOrigin) && currentPage === 'browser') openBrowser();
   });
   window.addEventListener('site:polytrack-config',event => {
     const value = event.detail?.polytrackOrigin;
-    if (typeof value !== 'string' || !/^https:\/\/[a-z](?:[a-z0-9-]{0,6}[a-z0-9])?--wordbuilder--675vggg6lnyg\.code\.run$/.test(value) || /^https:\/\/(?:p01|browse|browser)--/.test(value) || value === browserOrigin) return;
+    if (!validOrigin(value,'polytrack') || value === browserOrigin || !Number.isSafeInteger(event.detail?.configRevision) || event.detail.configRevision < 1 || event.detail.configRevision < configRevision) return;
+    configRevision = event.detail.configRevision;
     try { localStorage.setItem('sitePolyTrackBackendOrigin',value); } catch {}
   });
   window.addEventListener('site:browser-retry',event => {
@@ -134,6 +145,20 @@
     const search = query.toString();
     for (const link of document.querySelectorAll('[data-browser-link]')) link.href = '#/browser' + (search ? '?' + search : '');
   }
+  function openOwnerPolyTrack(url = POLYTRACK_URL) {
+    if (!window.SiteOwner?.keepPolyTrackControl?.()) return false;
+    // Only this tab retains the private owner session. The game gets no opener or auth data.
+    window.open(url,'_blank','noopener,noreferrer');
+    location.hash = '#/owner';
+    return true;
+  }
+  document.addEventListener('click',event => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const url = new URL(link.href,location.href);
+    if (url.origin === location.origin && url.pathname === '/polytrack/' && openOwnerPolyTrack(url.href)) event.preventDefault();
+  });
   function clearPlayer() {if (active) {clearTimeout(active.timer); active.frame?.remove(); active = null;}}
   function finishLoading(state) {
     if (active !== state) return;
@@ -164,7 +189,7 @@
   }
   function render() {
     const current = route();
-    if (current.path === '/polytrack') {location.replace(POLYTRACK_URL); return;}
+    if (current.path === '/polytrack') {if (!openOwnerPolyTrack()) location.replace(POLYTRACK_URL);return;}
     if (['/kahoot','/blooket','/gimkit'].includes(current.path)) {location.replace('#/hx'); return;}
     const game = current.path.startsWith('/games/') ? window.SiteGames?.get(current.path.slice(7)) : null;
     const page = game ? 'game' : current.path === '/games' ? 'games' : current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
