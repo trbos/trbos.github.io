@@ -2,15 +2,8 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "unavailable",
+  "stage": "queued",
   "gameId": null,
-  "detail": "Could not verify permission for the versions checked.",
-  "untrustedRequestData": true,
-  "research": {
-    "sourcesCompared": [
-      "https://gitflic.ru/project/lax1dude/eaglercraft-1_8-workspace",
-      "https://eaglercraft.is/download/"
-    ],
-    "evidence": "Checked EaglercraftX 1.8.8 u53 JavaScript and Eaglercraft 1.12.2 u3 JavaScript. The current u53 workspace identifies build targets for minified JavaScript and bundled assets but publishes copyright notices without a project-level redistribution grant. The older 2023 EaglercraftX custom license expressly excepts minified JavaScript, the compiled game, and files normally found in an unmodified Minecraft resource pack from its distribution ban, requires retained notices, and forbids commercial or malicious use; it does not verify permission for later u53 additions. The inspected u3 distribution contains PeytonPlayz595 and Mojang attributions but no license grant. A third-party MIT claim does not establish permission for the client code or bundled Mojang assets. No game files were added."
-  }
+  "detail": "",
+  "untrustedRequestData": true
 }
