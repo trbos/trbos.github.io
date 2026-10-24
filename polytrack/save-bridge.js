@@ -8,6 +8,8 @@
 })(globalThis, function createSaveHandoff(env, options) {
   'use strict';
   options = options || {};
+  // Save recovery is pinned to the original storage origin, never the renamed
+  // online backend or a previously configured backend hostname.
   const OLD = 'https://p01--wordbuilder--675vggg6lnyg.code.run';
   const NEW = 'https://trbos.github.io';
   const GAME = NEW + '/polytrack/';
@@ -17,6 +19,7 @@
   const PREVIOUS = 'polytrackPreviousBackupIdentity';
   const IDENTITY = 'polytrackCloudBackupIdentity';
   const ATTEMPTED = 'polytrackSaveHandoffAttemptedV1';
+  const CONFIRMATION = 'github-port-v1';
   const MAX = 8 * 1024 * 1024;
   const NONCE = /^[a-f0-9]{64}$/;
   const ID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
@@ -105,7 +108,7 @@
   function upgrade(db) {
     for (const name of ['snapshots', 'state']) if (!db.objectStoreNames?.contains(name)) db.createObjectStore(name);
   }
-  async function attemptedRecord(value) {
+  async function attemptedRecord(value, key = 'attempted-v1') {
     return limit(new Promise(resolve => {
       let request;
       try { request = env.indexedDB.open('PolyTrackSaveHandoff', 2); } catch { resolve(null); return; }
@@ -116,7 +119,7 @@
         try {
           const transaction = db.transaction('state', value === undefined ? 'readonly' : 'readwrite');
           const store = transaction.objectStore('state');
-          const operation = value === undefined ? store.get('attempted-v1') : store.put(value, 'attempted-v1');
+          const operation = value === undefined ? store.get(key) : store.put(value, key);
           let result;
           operation.onsuccess = () => { result = operation.result; };
           transaction.oncomplete = () => { db.close(); resolve(value === undefined ? result : value); };
@@ -154,7 +157,9 @@
       };
     }), options.journalMs ?? 1500, false);
   }
+  let progressComplete = false;
   async function apply(sourceEntries) {
+    progressComplete = false;
     sourceEntries = entries(sourceEntries);
     const run = async () => {
       const before = snapshot();
@@ -172,9 +177,36 @@
         }
         return false;
       }
+      progressComplete = !result.conflicts.some(conflict => ['profile','record','track'].includes(conflict.type));
       return true;
     };
     return env.navigator.locks?.request ? env.navigator.locks.request('polytrack-save-handoff-v1', run) : run();
+  }
+  async function confirmPending() {
+    const pending = await attemptedRecord(undefined, CONFIRMATION);
+    if (!pending || !validIdentity(pending.identity) || !Number.isSafeInteger(pending.revision) || pending.revision < 1) return;
+    const controller = new env.AbortController(), timer = later(() => controller.abort(), options.readMs ?? 3500);
+    try {
+      const response = await env.fetch(API, { method: 'POST', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + pending.identity.secret },
+        body: JSON.stringify({ action: 'ported', deviceId: pending.identity.deviceId, expectedRevision: pending.revision }) });
+      if (response.ok && (await response.json()).githubRevision === pending.revision) await attemptedRecord(null, CONFIRMATION);
+    } catch {} finally { cancel(timer); }
+  }
+  async function importBackup(identity, saved) {
+    if (!await apply(saved.entries) || !progressComplete) return false;
+    if (await attemptedRecord({ identity, revision: saved.revision }, CONFIRMATION)) await confirmPending();
+    return true;
+  }
+  async function confirmPrevious() {
+    try {
+      const previous = JSON.parse(env.localStorage.getItem(PREVIOUS));
+      if (!validIdentity(previous)) return;
+      const confirmed = await attemptedRecord(undefined, 'github-previous-v1');
+      if (confirmed?.deviceId === previous.deviceId && confirmed.revision >= previous.revision) return;
+      const saved = await remote(previous);
+      if (saved && await importBackup(previous, saved)) await attemptedRecord({ deviceId: previous.deviceId, revision: saved.revision }, 'github-previous-v1');
+    } catch {}
   }
   function probe() {
     const nonce = randomHex();
@@ -197,6 +229,7 @@
   }
   async function destination() {
     if (env.location.origin !== NEW) return true;
+    await confirmPending();
     const returning = env.location.hash.startsWith('#ptreturn=');
     if (returning) {
       let state;
@@ -208,7 +241,7 @@
         const value = await unseal(parse(fragment), state);
         env.localStorage.setItem(PREVIOUS, JSON.stringify(value.identity));
         const saved = await remote(value.identity);
-        if (saved) await apply(saved.entries);
+        if (saved) await importBackup(value.identity, saved);
       } catch {} finally {
         try { env.sessionStorage.removeItem(PENDING); } catch {}
         await rememberAttempt();
@@ -223,7 +256,7 @@
     }
     // The GitHub origin is permanent. Ordinary repeat launches only use its own
     // local data/cloud backup; an intentional old-link visit can retry recovery.
-    if (!retry && await attempted()) return true;
+    if (!retry && await attempted()) { await confirmPrevious(); return true; }
     await rememberAttempt();
     try { env.sessionStorage.removeItem(PENDING); } catch {}
     if (!await probe()) {
@@ -231,7 +264,7 @@
         const previous = JSON.parse(env.localStorage.getItem(PREVIOUS));
         if (validIdentity(previous) && snapshot().length === 0) {
           const saved = await remote(previous);
-          if (saved) await apply(saved.entries);
+          if (saved) await importBackup(previous, saved);
         }
       } catch {}
       return true;

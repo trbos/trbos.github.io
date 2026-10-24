@@ -182,6 +182,15 @@
       return result;
     } finally { clearTimer(timeout); controller = null; }
   }
+  async function confirmGithub() {
+    if (env.location?.origin !== 'https://trbos.github.io' || identity.revision < 1 || identity.githubRevision === identity.revision) return;
+    try {
+      const result = await request({ action: 'ported', deviceId: identity.deviceId, expectedRevision: identity.revision });
+      if (result.githubRevision !== identity.revision) throw Error('offline');
+      identity = { ...identity, githubRevision: result.githubRevision };
+      await persistIdentity(identity);
+    } catch { schedule(5000); }
+  }
   async function flushInner(keepalive) {
     if (stopped || blocked || restoring) return;
     const latest = getLocalIdentity();
@@ -191,10 +200,10 @@
       identity = latest; checked = false;
     }
     if (!pending) {
-      if (!changed) return;
+      if (!changed) { await confirmGithub(); return; }
       const current = snapshot();
       const hash = await digest(current.serialized);
-      if (hash === identity.digest) { changed = false; update('saved'); return; }
+      if (hash === identity.digest) { changed = false; update('saved'); await confirmGithub(); return; }
       pending = { deviceId: identity.deviceId, expectedRevision: identity.revision, digest: hash, entries: current.entries };
       await stored('pending', pending);
     }
@@ -227,6 +236,7 @@
     await persistIdentity(identity);
     pending = null; await stored('pending', null);
     retries = 0; update('saved', { revision: identity.revision, updatedAt: result.updatedAt });
+    await confirmGithub();
     const current = snapshot();
     changed = await digest(current.serialized) !== identity.digest;
     if (changed) schedule();

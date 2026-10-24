@@ -73,7 +73,11 @@
       return {apply(){
         try{for(const [name,value] of incoming)env.localStorage.setItem(name,value);return true;}
         catch(error){if(!rollback(old))throw Error('rollback_failed');throw error;}
-      },rollback:()=>rollback(old),async finish(){await stored(key,{...journal,phase:'complete'});env.localStorage.removeItem(PENDING);}};
+      },rollback:()=>rollback(old),async finish(){
+        const waiting=await stored('unconfirmed')||[];
+        await stored('unconfirmed',[...new Set([...waiting,key])]);
+        await stored(key,{...journal,phase:'complete'});env.localStorage.removeItem(PENDING);
+      }};
     };
     try{
       if(backup)await backup.restoreBarrier(prepare);
@@ -82,13 +86,30 @@
       if(!['rollback_failed','restore-rollback-failed'].includes(error.message)){await stored(key,{...journal,phase:'received'});env.localStorage.removeItem(PENDING);}
       throw error;
     }
+    await confirmCompleted();
     return {restored:true};
+  }
+  async function confirmCompleted(){
+    if(env.location?.origin!=='https://trbos.github.io')return;
+    try{
+      const waiting=await stored('unconfirmed')||[];
+      for(const key of waiting){
+        const journal=await stored(key);if(journal?.phase!=='complete'||!HEX.test(journal.code)||!HEX.test(journal.receipt))continue;
+        const controller=new env.AbortController(),timer=env.setTimeout(()=>controller.abort(),3500);
+        try{
+          const response=await env.fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'confirm',code:journal.code,receipt:journal.receipt}),credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:controller.signal});
+          if(response.ok&&(await response.json()).confirmed===true){
+            const latest=await stored('unconfirmed')||[];await stored('unconfirmed',latest.filter(value=>value!==key));
+          }
+        }catch{}finally{env.clearTimeout(timer);}
+      }
+    }catch{}
   }
   async function restore(rawCode){
     const code=String(rawCode||'').trim().toLowerCase();if(!HEX.test(code))throw Error('invalid_code');if(busy)throw Error('busy');busy=true;
     try{
       await recover();const key=await hash(code);let journal=await stored(key);
-      if(journal?.phase==='complete')return {restored:false,alreadyRestored:true};
+      if(journal?.phase==='complete'){await confirmCompleted();return {restored:false,alreadyRestored:true};}
       if(!journal){journal={version:1,phase:'waiting',code,receipt:random(),createdAt:Date.now()};await stored(key,journal);}
       if(!HEX.test(journal.receipt)||journal.code!==code)throw Error('storage_unavailable');
       if(!journal.entries){
@@ -136,7 +157,7 @@
     const observer=new env.MutationObserver(scan);observer.observe(env.document.body,{childList:true,subtree:true});scan();
   }
   function start(){if(!started)started=(async()=>{
-    let recovered=true;try{await recover();}catch{recovered=false;}
+    let recovered=true;try{await recover();void confirmCompleted();}catch{recovered=false;}
     const mount=()=>{
       install();
       if(!recovered){

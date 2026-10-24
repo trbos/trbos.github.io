@@ -222,7 +222,7 @@
     <script src="./backend-config.js?v=2"></script>
     <script src="./static-assets.js"></script>
     <script src="./save-merge.js?v=1"></script>
-    <script src="./restore-code.js?v=1"></script>
+    <script src="./restore-code.js?v=2"></script>
     <script type="module">
       const loadScript = src => new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -232,7 +232,7 @@
         document.head.append(script);
       });
       if (await (window.PolyTrackRestoreReady ?? true)) {
-      await loadScript('./save-bridge.js?v=1');
+      await loadScript('./save-bridge.js?v=2');
       await loadScript('./save-gate.js?v=2');
       if (await window.polytrackSaveReady) {
       await window.PolyTrackBackendReady;
@@ -252,7 +252,7 @@
       await loadScript('./error_screen.bundle.js');
       await import('./other-track-ratings.js');
       await loadScript('./main.bundle.js');
-      void import('./cloud-backup.js?v=restore-1').catch(() => {});
+      void import('./cloud-backup.js?v=github-port-1').catch(() => {});
       }
       }
     </script>
