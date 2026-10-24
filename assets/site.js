@@ -43,6 +43,8 @@
       .then(data => {
         if (version !== configVersion) return false;
         const changed = setRuntimeOrigin(data?.runtimeOrigin);
+        if (changed) window.dispatchEvent(new CustomEvent('site:browser-config',{detail:{runtimeOrigin:browserOrigin}}));
+        if (typeof data?.polytrackOrigin === 'string') window.dispatchEvent(new CustomEvent('site:polytrack-config',{detail:{polytrackOrigin:data.polytrackOrigin}}));
         if (changed && active?.frame && new URL(active.frame.src).origin !== browserOrigin) openBrowser();
         return changed;
       }).catch(() => false)
@@ -55,6 +57,11 @@
   window.addEventListener('site:browser-config',event => {
     configVersion++;
     if (setRuntimeOrigin(event.detail?.runtimeOrigin) && currentPage === 'browser') openBrowser();
+  });
+  window.addEventListener('site:polytrack-config',event => {
+    const value = event.detail?.polytrackOrigin;
+    if (typeof value !== 'string' || !/^https:\/\/[a-z](?:[a-z0-9-]{0,6}[a-z0-9])?--wordbuilder--675vggg6lnyg\.code\.run$/.test(value) || /^https:\/\/(?:p01|browse|browser)--/.test(value) || value === browserOrigin) return;
+    try { localStorage.setItem('sitePolyTrackBackendOrigin',value); } catch {}
   });
   window.addEventListener('site:browser-retry',event => {
     if (currentPage === 'browser' && event.detail?.runtimeOrigin === browserOrigin) openBrowser();
@@ -181,5 +188,9 @@
   window.addEventListener('hashchange',render);
   window.addEventListener('pagehide',clearPlayer);
   window.addEventListener('pageshow',event => {if (event.persisted) render();});
+  const checkConfig = () => {if (currentPage === 'browser' && document.visibilityState === 'visible') void refreshRuntime();};
+  document.addEventListener('visibilitychange',checkConfig);
+  window.addEventListener('online',checkConfig);
+  setInterval(checkConfig,60000);
   render();
 })();

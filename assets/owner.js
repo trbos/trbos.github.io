@@ -12,48 +12,58 @@
   let host = null, fields = null, session = null, verified = false;
   let busy = false, operation = '', epoch = 0, pending = null, automaticPending = null;
   let currentRoute = location.hash.slice(2).split('?')[0] || 'home', currentOrigin = null;
+  let currentPolyOrigin = null, selectedTarget = 'browser', operationTarget = 'browser';
+  const drafts = {browser:'',polytrack:''};
   let autoEnabled = false, autoCooldownUntil = 0, failureOrigin = null, failureCount = 0, historyTicket = 0;
 
   class RequestError extends Error {
     constructor(status = 0, code = '') { super('Request failed'); this.status = status; this.code = code; }
   }
 
-  function runtimeOrigin(value) {
+  function runtimeOrigin(value, target = 'browser') {
     if (typeof value !== 'string') return null;
     const match = /^https:\/\/([a-z](?:[a-z0-9-]{0,6}[a-z0-9])?)--wordbuilder--675vggg6lnyg\.code\.run$/.exec(value);
-    return match && validName(match[1]) ? value : null;
+    return match && (validName(match[1]) || target === 'polytrack' && match[1] === 'launch') ? value : null;
   }
 
-  function publishOrigin(value) {
-    const origin = runtimeOrigin(value);
+  function publishOrigin(value, target = 'browser') {
+    const origin = runtimeOrigin(value,target);
     if (!origin) throw new RequestError();
-    window.dispatchEvent(new CustomEvent('site:browser-config',{detail:{runtimeOrigin:origin}}));
+    window.dispatchEvent(new CustomEvent(target === 'polytrack' ? 'site:polytrack-config' : 'site:browser-config',{
+      detail:target === 'polytrack' ? {polytrackOrigin:origin} : {runtimeOrigin:origin}
+    }));
   }
+
+  function targetOrigin(target) {return target === 'polytrack' ? currentPolyOrigin : currentOrigin;}
+
+  function configOrigin(data,target) {return runtimeOrigin(target === 'polytrack' ? data?.polytrackOrigin : data?.runtimeOrigin,target);}
 
   function resetFailures() { failureOrigin = null; failureCount = 0; }
 
   function storePending(job) {
-    try {localStorage.setItem(PENDING_KEY,JSON.stringify({requestId:job.requestId,name:job.name,automatic:job.automatic,targetOrigin:job.targetOrigin}));}
+    try {localStorage.setItem(PENDING_KEY,JSON.stringify({requestId:job.requestId,name:job.name,automatic:job.automatic,target:job.target,targetOrigin:job.targetOrigin}));}
     catch { /* Recovery still works in this tab when storage is unavailable. */ }
   }
 
   function clearPending(job) {
     try {
       const saved = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');
-      if (saved?.requestId === job.requestId) localStorage.removeItem(PENDING_KEY);
+      if (saved?.requestId === job.requestId && (saved.target || 'browser') === job.target) localStorage.removeItem(PENDING_KEY);
     } catch { /* Storage can be disabled independently of sign-in. */ }
   }
 
   function restorePending() {
     let job;
     try {job = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');} catch {return;}
+    const target = job?.target === undefined ? 'browser' : job.target;
     if (!job || !validName(job.name) || typeof job.automatic !== 'boolean' ||
+      !['browser','polytrack'].includes(target) || job.automatic && target !== 'browser' ||
       typeof job.requestId !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(job.requestId) ||
       job.targetOrigin !== 'https://' + job.name + RUNTIME_SUFFIX) return;
-    const safe = {name:job.name,requestId:job.requestId,automatic:job.automatic,targetOrigin:job.targetOrigin};
-    if (currentOrigin === safe.targetOrigin) {clearPending(safe);return;}
+    const safe = {name:job.name,requestId:job.requestId,automatic:job.automatic,target,targetOrigin:job.targetOrigin};
+    if (targetOrigin(target) === safe.targetOrigin) {clearPending(safe);return;}
     if (safe.automatic) automaticPending = safe;
-    else {pending = safe;if (fields) fields.name.value = safe.name;}
+    else {pending = safe;selectedTarget = target;drafts[target] = safe.name;if (fields) fields.name.value = safe.name;}
   }
 
   window.addEventListener('site:browser-config',event => {
@@ -62,7 +72,14 @@
     currentOrigin = origin;
     resetFailures();
     if (automaticPending && origin === automaticPending.targetOrigin) {clearPending(automaticPending);automaticPending = null;}
-    if (pending && origin === pending.targetOrigin) {clearPending(pending);pending = null;}
+    if (pending?.target === 'browser' && origin === pending.targetOrigin) {clearPending(pending);pending = null;}
+  });
+
+  window.addEventListener('site:polytrack-config',event => {
+    const origin = runtimeOrigin(event.detail?.polytrackOrigin,'polytrack');
+    if (!origin || origin === currentPolyOrigin) return;
+    currentPolyOrigin = origin;
+    if (pending?.target === 'polytrack' && origin === pending.targetOrigin) {clearPending(pending);pending = null;}
   });
 
   function announceOwner(owner) {
@@ -115,25 +132,31 @@
     host.hidden = currentRoute !== 'owner';
     fields.login.hidden = verified;
     fields.controls.hidden = !verified;
-    fields.history.hidden = !verified;
+    fields.history.hidden = !verified || selectedTarget !== 'browser';
     fields.username.disabled = busy;
     fields.pin.disabled = busy;
     fields.signin.disabled = busy;
     fields.name.disabled = busy;
-    fields.name.readOnly = !!pending;
+    fields.name.readOnly = pending?.target === selectedTarget;
     fields.rotate.disabled = busy;
     fields.auto.checked = autoEnabled;
     fields.auto.disabled = busy;
+    fields.auto.closest('label').hidden = selectedTarget !== 'browser';
+    for (const button of fields.targets) {
+      button.setAttribute('aria-pressed',String(button.dataset.target === selectedTarget));
+      button.disabled = busy || !!pending && pending.target !== button.dataset.target;
+    }
     fields.recover.hidden = !automaticPending;
     fields.recover.disabled = busy;
     fields.signin.textContent = busy && operation === 'signin' ? 'Signing in…' : 'Sign in';
-    fields.rotate.textContent = busy && operation === 'rotate' ? 'Rotating…' : 'Rotate Browser';
+    fields.rotate.textContent = busy && operation === 'rotate' ? operationTarget === 'polytrack' ? 'Renaming…' : 'Rotating…' : selectedTarget === 'polytrack' ? 'Rename PolyTrack' : 'Rotate Browser';
     host.setAttribute('aria-busy',String(busy));
   }
 
   function forget() {
     epoch++;
     session = null; verified = false; pending = null; automaticPending = null; busy = false; operation = ''; autoEnabled = false;
+    selectedTarget = 'browser'; operationTarget = 'browser'; drafts.browser = ''; drafts.polytrack = '';
     resetFailures();
     historyTicket++;
     if (fields) { fields.pin.value = ''; fields.name.value = ''; }
@@ -152,10 +175,11 @@
       next = await auth('refresh_token',{refresh_token:next.refreshToken});
       data = await control('owner',next.accessToken);
     }
-    if (data?.owner !== true || !runtimeOrigin(data.runtimeOrigin)) throw new RequestError(403);
+    if (data?.owner !== true || !runtimeOrigin(data.runtimeOrigin) || !runtimeOrigin(data.polytrackOrigin,'polytrack')) throw new RequestError(403);
     if (version !== epoch) return false;
     session = next; verified = true;
     publishOrigin(data.runtimeOrigin);
+    publishOrigin(data.polytrackOrigin,'polytrack');
     announceOwner(true);
     void refreshHistory(version);
     return true;
@@ -165,7 +189,7 @@
     if (error.code === 'invalid_name') return 'Choose another name.';
     if (error.code === 'name_in_use') return 'Name unavailable.';
     if (error.code === 'operation_in_progress' || error.code === 'lease_lost') return 'A rotation is already running. Try again.';
-    if (error.code === 'configuration_conflict') return 'Browser configuration changed. Try again later.';
+    if (error.code === 'configuration_conflict') return 'Backend configuration changed. Try again later.';
     if (error.code === 'rotation_not_configured') return 'Rotation is unavailable.';
     if (error.code === 'backend_unhealthy') return 'Browser backend is unavailable. Use Retry.';
     if (['cooldown','automatic_cooldown','auto_cooldown','automatic_rate_limit','automatic_daily_limit'].includes(error.code)) return 'Auto rotation paused. Use Retry.';
@@ -259,9 +283,9 @@
     while (version === epoch && Date.now() < deadline) {
       try {
         const data = await request(CONTROL_URL,{headers:{apikey:PUBLIC_KEY}},Math.min(10000,deadline-Date.now()));
-        if (runtimeOrigin(data?.runtimeOrigin) === job.targetOrigin) {
+        if (configOrigin(data,job.target) === job.targetOrigin) {
           if (version !== epoch) return false;
-          publishOrigin(data.runtimeOrigin);
+          publishOrigin(job.targetOrigin,job.target);
           return true;
         }
       } catch { /* A service rollout may briefly interrupt config requests. */ }
@@ -271,29 +295,30 @@
     return false;
   }
 
-  async function performRotation(name, automatic = false, recover = false) {
+  async function performRotation(name, automatic = false, recover = false, target = 'browser') {
     if (busy || !verified || !session) return false;
+    if (!['browser','polytrack'].includes(target) || automatic && target !== 'browser') return false;
     const version = epoch;
-    busy = true; operation = 'rotate'; status(); render();
+    busy = true; operation = 'rotate'; operationTarget = target; status(); render();
     try {
       const originalOrigin = currentOrigin;
       if (!await checkOwner(session,version)) return false;
       if (version !== epoch || !verified || !session) return false;
       if (automatic && !recover && (currentRoute !== 'browser' || !autoEnabled || originalOrigin !== currentOrigin)) return false;
-      if (currentOrigin === 'https://' + name + RUNTIME_SUFFIX) {status();return true;}
+      if (targetOrigin(target) === 'https://' + name + RUNTIME_SUFFIX) {status();return true;}
       let job = automatic ? automaticPending : pending;
-      if (!job) job = {name,requestId:crypto.randomUUID(),targetOrigin:'https://' + name + RUNTIME_SUFFIX,automatic};
+      if (!job) job = {name,requestId:crypto.randomUUID(),target,targetOrigin:'https://' + name + RUNTIME_SUFFIX,automatic};
+      if (job.target !== target || job.name !== name || job.automatic !== automatic) throw new RequestError(409,'request_mismatch');
       if (automatic) automaticPending = job; else pending = job;
       storePending(job);
-      if (job.name !== name) throw new RequestError(409);
       render();
       const deadline = Date.now() + POLL_LIMIT;
       let uncertain = false;
       try {
         if (version !== epoch || !verified || !session) return false;
         if (automatic) autoCooldownUntil = Date.now() + AUTO_COOLDOWN;
-        const data = await control('rename',session.accessToken,{name:job.name,requestId:job.requestId,...(automatic ? {automatic:true} : {})});
-        if (runtimeOrigin(data?.runtimeOrigin) !== job.targetOrigin || data.name !== job.name) throw new RequestError();
+        const data = await control('rename',session.accessToken,{name:job.name,requestId:job.requestId,target:job.target,...(automatic ? {automatic:true} : {})});
+        if (configOrigin(data,job.target) !== job.targetOrigin || data.name !== job.name || data.target !== undefined && data.target !== job.target) throw new RequestError();
       } catch (error) {
         if (version !== epoch) return;
         if (error.status >= 400 && error.status < 500) {
@@ -311,7 +336,7 @@
         uncertain = true;
       }
       if (version !== epoch) return;
-      status('Rotating…');
+      status(target === 'polytrack' ? 'Renaming…' : 'Rotating…');
       if (await pollRotation(job,version,deadline)) {
         clearPending(job);
         if (automatic) automaticPending = null; else {pending = null; automaticPending = null;}
@@ -342,7 +367,17 @@
       status(RESERVED_NAMES.has(name) || name.includes('--') ? 'Choose another name.' : 'Use 1–8 lowercase letters, digits or hyphens. Start with a letter and end with a letter or digit.');
       fields.name.focus(); return;
     }
-    await performRotation(name);
+    drafts[selectedTarget] = name;
+    await performRotation(name,false,false,selectedTarget);
+  }
+
+  function selectTarget(target) {
+    if (busy || !['browser','polytrack'].includes(target)) return;
+    if (pending && pending.target !== target) {status('Finish the pending rename first.');return;}
+    drafts[selectedTarget] = fields.name.value;
+    selectedTarget = target;
+    fields.name.value = pending?.target === target ? pending.name : drafts[target];
+    status(); render();
   }
 
   function browserError(origin,message) {
@@ -352,7 +387,7 @@
 
   function randomName() {
     const bytes = new Uint8Array(12);
-    let name = '';
+    let name = '', candidateOrigin = '';
     do {
       name = '';
       while (name.length < 6) {
@@ -362,7 +397,8 @@
           if (name.length === 6) break;
         }
       }
-    } while (!validName(name) || 'https://' + name + RUNTIME_SUFFIX === currentOrigin);
+      candidateOrigin = 'https://' + name + RUNTIME_SUFFIX;
+    } while (!validName(name) || candidateOrigin === currentOrigin || candidateOrigin === currentPolyOrigin);
     return name;
   }
 
@@ -408,6 +444,7 @@
       '<label>PIN<input name="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="128" required></label>' +
       '<button type="submit">Sign in</button></form>' +
       '<form class="site-owner-controls" novalidate hidden>' +
+      '<div class="site-owner-targets" role="group" aria-label="Rename target"><button type="button" data-target="browser" aria-pressed="true">Browser</button><button type="button" data-target="polytrack" aria-pressed="false">PolyTrack</button></div>' +
       '<label class="site-owner-auto"><input name="automatic" type="checkbox">Auto rotate</label>' +
       '<label>New name<input name="name" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="8" required></label>' +
       '<button type="submit">Rotate Browser</button><button class="site-owner-recover" type="button" hidden>Retry</button><button class="site-owner-signout" type="button">Sign out</button></form>' +
@@ -417,11 +454,13 @@
       login, controls, username:login.elements.username, pin:login.elements.pin,
       signin:login.querySelector('button'), name:controls.elements.name,
       rotate:controls.querySelector('button[type=submit]'), auto:controls.elements.automatic,
+      targets:[...controls.querySelectorAll('[data-target]')],
       recover:controls.querySelector('.site-owner-recover'),
       status:host.querySelector('.site-owner-status'), history:host.querySelector('.site-owner-log')
     };
     login.addEventListener('submit',signin);
     controls.addEventListener('submit',rotate);
+    for (const button of fields.targets) button.addEventListener('click',() => selectTarget(button.dataset.target));
     fields.recover.addEventListener('click',() => {if (!busy && automaticPending) void performRotation(automaticPending.name,true,true);});
     fields.auto.addEventListener('change',() => {autoEnabled = fields.auto.checked; resetFailures();});
     host.querySelector('.site-owner-signout').addEventListener('click',() => {forget(); status(); fields.username.focus();});

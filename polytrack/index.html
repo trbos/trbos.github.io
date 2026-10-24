@@ -218,24 +218,15 @@
     </style>
     <script>
       window.polytrackModConfiguration = { unblocked: false };
-      const polytrackApiProxyPath = 'https://p01--wordbuilder--675vggg6lnyg.code.run/polytrack/polytrack-api/';
-      window.polytrackApiBaseUrl = polytrackApiProxyPath;
-      window.polytrackWsBaseUrl = polytrackApiProxyPath.replace(/^http/, 'ws');
-      window.polytrackApiAssetUrl = (url) => {
-        const asset = new URL(url, window.location.href);
-        if (asset.origin !== "https://vps.kodub.com") return url;
-        return new URL(
-          asset.pathname.replace(/^\/+/, "") + asset.search + asset.hash,
-          window.polytrackApiBaseUrl,
-        ).href;
-      };
     </script>
+    <script src="./backend-config.js?v=1"></script>
     <script src="./static-assets.js"></script>
     <script src="./save-merge.js?v=1"></script>
     <script src="./save-bridge.js?v=1"></script>
     <script src="./save-gate.js?v=2"></script>
     <script type="module">
       if (await window.polytrackSaveReady) {
+      await window.PolyTrackBackendReady;
       // Capture the untouched local save before the game initializes defaults.
       try {
         const extra = new Set(['polyMods', 'car_colors', 'MyCar', 'carSound', 'polyprocessing_settings',

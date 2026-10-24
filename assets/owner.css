@@ -17,3 +17,6 @@
 .site-owner-log th,.site-owner-log td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
 .site-owner-log th{font-weight:600;color:var(--muted)}
 .site-owner-log th:first-child{width:34%}
+.site-owner-targets{display:flex;gap:8px}
+.site-owner-targets button{flex:1;min-width:0;padding-inline:12px;background:transparent}
+.site-owner-targets button[aria-pressed=true]{background:var(--band);border-color:var(--accent)}
