@@ -45,6 +45,7 @@
     const lower=Math.max(1,Math.ceil(lo/60)),upper=Math.max(1,Math.ceil(hi/60));
     return "Est. "+(lo>60&&lower!==upper?lower+"–"+upper:upper===1?"under 1":"up to "+upper)+" min"+(active?" left":"");
   }
+  function validEstimate(value){return Array.isArray(value)&&value.length===2&&value.every(v=>Number.isFinite(v)&&v>=0&&v<=86400)&&value[1]>=value[0]&&value[1]>0;}
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
     banner.hidden=!active;
@@ -69,11 +70,15 @@
       play.hidden=job.stage!=='added'||!job.gameId;
       if(!play.hidden)play.href=env.location.pathname+'?game='+encodeURIComponent(job.gameId)+'#/games/'+job.gameId;
     }
-    const supplied=job?.estimateSeconds||snapshot?.estimateSeconds;
-    const range=Array.isArray(supplied)&&supplied.length===2&&supplied.every(v=>Number.isFinite(v)&&v>=0&&v<=7300)&&supplied[1]>supplied[0]?supplied:[600,1800];
-    form.querySelector(".game-request-estimate").textContent=timeText(range);
+    // Estimates belong to the current attempt and stage. Old creation dates
+    // include retries, research and idle time, so never subtract from them.
+    const estimate=form.querySelector(".game-request-estimate");estimate.hidden=true;estimate.textContent='';
     const remaining=result.querySelector(".game-request-remaining");remaining.hidden=!job||terminal.has(job.stage)||Boolean(existing);
-    if(!remaining.hidden){const since=Date.parse(job.createdAt);remaining.textContent=timeText(range,Number.isFinite(since)?Math.max(0,(Date.now()-since)/1000):0,true);}
+    if(!remaining.hidden){
+      const reliable=Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&Number.isFinite(Date.parse(job.estimatedAt));
+      remaining.textContent=reliable&&job.estimateOverrun===true?'Taking longer than estimated':
+        reliable&&validEstimate(job.remainingSeconds)?timeText(job.remainingSeconds,0,true):'Estimating…';
+    }
     if(keepNotice)return;
     if(existing)notice.textContent='';
     else if(!snapshot?.ready&&!active)notice.textContent='Automatic additions need setup.';
