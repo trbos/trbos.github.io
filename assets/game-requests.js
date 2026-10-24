@@ -53,7 +53,8 @@
       result.querySelector('h3').textContent=existing.name;stage.textContent='Already added';detail.hidden=true;bar.hidden=true;play.hidden=false;
       play.href=env.location.pathname+'?game='+encodeURIComponent(existing.id)+'#/games/'+existing.id;
     }else if(job){
-      result.querySelector('h3').textContent=job.name;stage.textContent=STAGES[job.stage];detail.textContent=job.detail;
+      result.querySelector('h3').textContent=job.name;stage.textContent=STAGES[job.stage];
+      detail.textContent=job.stage==='unavailable'&&/^No legally hostable version (?:was found|exists)[:.]/i.test(job.detail)?'Could not verify permission for the versions checked.':job.detail;
       detail.hidden=!job.detail;bar.hidden=job.progress===null;if(job.progress!==null)bar.value=job.progress;
       play.hidden=job.stage!=='added'||!job.gameId;
       if(!play.hidden)play.href=env.location.pathname+'?game='+encodeURIComponent(job.gameId)+'#/games/'+job.gameId;
