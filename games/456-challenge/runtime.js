@@ -47,7 +47,10 @@
       // Unity versions finish their frame with different render targets bound.
       // Read the displayed canvas, then restore the engine's exact binding.
       const target=gl.READ_FRAMEBUFFER||gl.FRAMEBUFFER,binding=gl.getParameter(gl.READ_FRAMEBUFFER_BINDING||gl.FRAMEBUFFER_BINDING);
-      try{gl.bindFramebuffer(target,null);for(const y of [.1,.3,.5,.7,.9])for(const x of [.1,.3,.5,.7,.9]){gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(pixels[0]+pixels[1]+pixels[2]>40)visible++;if(Math.max(...pixels.subarray(0,3))-Math.min(...pixels.subarray(0,3))>25)colored++;}}
+      // Archers' enabled menu is mostly grey. Its colored native controls fall
+      // between the coarser grid points; sample that layout more densely.
+      const points=id==='archers'?[.1,.2,.3,.4,.5,.6,.7,.8,.9]:[.1,.3,.5,.7,.9];
+      try{gl.bindFramebuffer(target,null);for(const y of points)for(const x of points){gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(pixels[0]+pixels[1]+pixels[2]>40)visible++;if(Math.max(...pixels.subarray(0,3))-Math.min(...pixels.subarray(0,3))>25)colored++;}}
       finally{gl.bindFramebuffer(target,binding);}state.visibleSamples=visible;state.coloredSamples=colored;
       if(visible>3&&(colored>1||state.nativeReady)&&state.frames>=3)passes++;else passes=0;
       if(passes>=3){scan=null;state.phase='ready';state.readyAt=performance.now();document.getElementById('status').hidden=true;notify('ready');canvas.focus();}
