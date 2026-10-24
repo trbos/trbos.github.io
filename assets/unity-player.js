@@ -5,6 +5,7 @@
   const directory = new URL('./',configUrl);
   const gameId = directory.pathname.match(/\/games\/([a-z0-9][a-z0-9-]{0,50})\/$/)?.[1];
   const helperUrl = new URL('./unity-assets.js',script.src);
+  helperUrl.searchParams.set('v','startup-2');
   const host = document.getElementById('unity-frame-host');
   const loading = document.getElementById('unity-loading');
   const progress = document.getElementById('unity-progress');
@@ -42,6 +43,7 @@
     if(!value||value.version!==1||value.id!==gameId||typeof value.title!=='string'||value.title.length>80||typeof value.runtimeHtml!=='string'||value.runtimeHtml.length>65536||!/<head(?:\s[^>]*)?>/i.test(value.runtimeHtml))throw Error();
     if(!value.assets||Object.keys(value.assets).length!==names.length)throw Error();
     if(value.viewport!==undefined&&(!value.viewport||Object.keys(value.viewport).length!==2||value.viewport.width!==600||value.viewport.height!==1000))throw Error();
+    if(value.startupTimeoutMs!==undefined&&(!Number.isSafeInteger(value.startupTimeoutMs)||value.startupTimeoutMs<30000||value.startupTimeoutMs>120000))throw Error();
     let total=0;
     for(const name of names){const a=value.assets[name];if(!a||!/^Build\/[A-Za-z0-9_.-]+$/.test(a.path)||!Number.isSafeInteger(a.bytes)||a.bytes<1||!/^[a-f0-9]{64}$/.test(a.sha256))throw Error();total+=a.bytes;if(total>LIMIT)throw Error();}
     return {...value,total};
@@ -81,8 +83,10 @@
     try{
       const response=await fetch(configUrl,{credentials:'omit',cache:'no-cache',referrerPolicy:'no-referrer',signal});if(!response.ok)throw Error();
       const text=await response.text();if(text.length>100000)throw Error();const config=validate(JSON.parse(text));if(version!==epoch)return;current=config;document.title=config.title;window.UnityPlayerStatus.id=config.id;
-      const policy="default-src 'none'; script-src "+directory.href+' '+helperUrl.href+" blob: 'unsafe-eval' 'wasm-unsafe-eval'; style-src "+directory.href+" 'unsafe-inline'; img-src "+directory.href+" blob: data:; connect-src "+directory.href+" blob:; worker-src "+directory.href+" blob:; media-src "+directory.href+" blob: data:; font-src "+directory.href+"; frame-src 'none'; base-uri "+directory.href+"; form-action 'none'; object-src 'none'";
-      const prefix='<meta http-equiv="Content-Security-Policy" content="'+attr(policy)+'"><base href="'+attr(directory.href)+'"><script src="'+attr(helperUrl.href)+'" data-game="'+config.id+'"></script>';
+      const startupTimeout=config.startupTimeoutMs||30000;
+      clearTimeout(timer);timer=setTimeout(()=>fail(version),startupTimeout);
+      const policy="default-src 'none'; script-src "+directory.href+' '+helperUrl.origin+helperUrl.pathname+" blob: 'unsafe-eval' 'wasm-unsafe-eval'; style-src "+directory.href+" 'unsafe-inline'; img-src "+directory.href+" blob: data:; connect-src "+directory.href+" blob:; worker-src "+directory.href+" blob:; media-src "+directory.href+" blob: data:; font-src "+directory.href+"; frame-src 'none'; base-uri "+directory.href+"; form-action 'none'; object-src 'none'";
+      const prefix='<meta http-equiv="Content-Security-Policy" content="'+attr(policy)+'"><base href="'+attr(directory.href)+'"><script src="'+attr(helperUrl.href)+'" data-game="'+config.id+'" data-timeout="'+startupTimeout+'"></script>';
       frame=document.createElement('iframe');frame.title=config.title;frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.allow='autoplay; fullscreen *; gamepad';frame.allowFullscreen=true;frame.referrerPolicy='no-referrer';
       frame.srcdoc=config.runtimeHtml.replace(/<head(?:\s[^>]*)?>/i,match=>match+prefix);
       if(config.viewport){viewport=config.viewport;frame.style.cssText='inset:auto;left:50%;top:50%;width:'+viewport.width+'px;height:'+viewport.height+'px;transform-origin:center';}
