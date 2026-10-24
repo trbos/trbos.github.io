@@ -2,8 +2,39 @@
   "requestId": "cd8f5aff-52f9-4399-b1d1-bcbafe6cfae2",
   "name": "Crossy road",
   "url": null,
-  "stage": "adding",
-  "gameId": null,
-  "detail": "Integrating the verified Three.js build into the local game catalog.",
-  "untrustedRequestData": true
+  "stage": "ready",
+  "gameId": "crossy-road",
+  "detail": "Crossy Road passed native browser gameplay and responsive iPad emulation checks.",
+  "untrustedRequestData": true,
+  "quality": {
+    "passed": true,
+    "adFree": true,
+    "contentAppropriate": true,
+    "played": true,
+    "retried": true,
+    "controls": true,
+    "sourcesCompared": [
+      "https://github.com/SepraDC/crossy-js",
+      "https://github.com/evanbacon/expo-crossy-road"
+    ],
+    "coldMs": 2487,
+    "warmMs": 4102,
+    "evidence": "Played the native Three.js build with touch controls through a traffic collision and retried to a fresh score-zero session without runtime errors. The final verifier measured 2487 ms cold and 4102 ms warm; landscape and portrait iPad emulation both rendered the responsive canvas. Screenshots: .game-addition-qa/crossy-road-game-over.png, .game-addition-qa/landscape.png, and .game-addition-qa/portrait.png. Emulation is not a physical iPad test."
+  },
+  "license": {
+    "name": "Permission not verified; owner review",
+    "url": "https://github.com/SepraDC/crossy-js"
+  },
+  "qaSteps": [
+    {"type": "button", "text": "▲"},
+    {"type": "wait", "ms": 400},
+    {"type": "button", "text": "▲"},
+    {"type": "wait", "ms": 400},
+    {"type": "button", "text": "◀"},
+    {"type": "wait", "ms": 400},
+    {"type": "button", "text": "▲"},
+    {"type": "wait", "ms": 400},
+    {"type": "button", "text": "▶"},
+    {"type": "wait", "ms": 400}
+  ]
 }
