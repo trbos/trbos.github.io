@@ -2,8 +2,8 @@
   "requestId": "9d9e8074-b744-4da0-8b24-3460d040bef7",
   "name": "add Minecraft eaglercraft but a good version and latest",
   "url": null,
-  "stage": "adding",
+  "stage": "unavailable",
   "gameId": null,
-  "detail": "Integrating the maintained EaglercraftX 1.8.8 u53 JavaScript offline build with its upstream credits and owner-review permission metadata.",
+  "detail": "EaglercraftX 1.8.8 u53 JavaScript exceeded the startup target in native Chromium (about 25 seconds to the first interactive screen and about 35 seconds on warm reopen), and the integrated canvas repeatedly timed out during rendered screenshot capture after menu interaction. The 1.12.2 JavaScript alternative is documented by its distributor as slower and was not a suitable fallback. Permission uncertainty was not used as a rejection reason.",
   "untrustedRequestData": true
 }
