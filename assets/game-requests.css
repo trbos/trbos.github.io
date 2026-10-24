@@ -12,3 +12,5 @@
 .game-request-play,.game-request-retry{margin-top:16px}.game-request-dialog [hidden]{display:none!important}.game-request-dialog :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .game-request-notice:empty{display:none}
 @media(max-height:540px){.game-request-dialog{padding:16px}.game-request-heading{margin-bottom:12px}.game-request-dialog form{gap:10px}}
+
+.game-request-estimate,.game-request-remaining{margin:8px 0 0;color:var(--muted,var(--text));font-size:13px;line-height:1.4}

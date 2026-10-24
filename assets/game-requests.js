@@ -7,7 +7,7 @@
   const grid=env.document.getElementById('games');if(!grid)return;
   const button=env.document.createElement('button');button.type='button';button.className='game-card game-request-card';button.textContent='Add a game!';grid.append(button);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
-  dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
+  dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
   const form=dialog.querySelector('form'),submit=form.querySelector('[type=submit]'),notice=dialog.querySelector('.game-request-notice'),result=dialog.querySelector('.game-request-result'),stage=dialog.querySelector('.game-request-stage'),bar=result.querySelector('progress'),detail=result.querySelector('.game-request-detail'),play=result.querySelector('a'),retry=dialog.querySelector('.game-request-retry');
   submit.disabled=true;
@@ -36,6 +36,12 @@
     if(pending&&value.request?.id===pending.id){pending=null;storedPending(null);}
     render();
   }
+  function timeText(range,elapsed=0,active=false){
+    const lo=Math.max(0,range[0]-elapsed),hi=range[1]-elapsed;
+    if(hi<=0)return "Taking longer than estimated";
+    const lower=Math.max(1,Math.ceil(lo/60)),upper=Math.max(1,Math.ceil(hi/60));
+    return "Est. "+(lo>60&&lower!==upper?lower+"–"+upper:upper===1?"under 1":"up to "+upper)+" min"+(active?" left":"");
+  }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
     const cooling=Number.isFinite(Date.parse(snapshot?.nextAt))&&Date.parse(snapshot.nextAt)>Date.now();
@@ -52,9 +58,14 @@
       play.hidden=job.stage!=='added'||!job.gameId;
       if(!play.hidden)play.href=env.location.pathname+'?game='+encodeURIComponent(job.gameId)+'#/games/'+job.gameId;
     }
+    const supplied=job?.estimateSeconds||snapshot?.estimateSeconds;
+    const range=Array.isArray(supplied)&&supplied.length===2&&supplied.every(v=>Number.isFinite(v)&&v>=0&&v<=7300)&&supplied[1]>supplied[0]?supplied:[600,1800];
+    form.querySelector(".game-request-estimate").textContent=timeText(range);
+    const remaining=result.querySelector(".game-request-remaining");remaining.hidden=!job||terminal.has(job.stage)||Boolean(existing);
+    if(!remaining.hidden){const since=Date.parse(job.createdAt);remaining.textContent=timeText(range,Number.isFinite(since)?Math.max(0,(Date.now()-since)/1000):0,true);}
     if(keepNotice)return;
     if(existing)notice.textContent='';
-    else if(!snapshot?.ready)notice.textContent='Automatic additions need setup.';
+    else if(!snapshot?.ready&&!active)notice.textContent='Automatic additions need setup.';
     else if(other)notice.textContent='Another game is being added.';
     else if(active)notice.textContent='';
     else if(cooling)notice.textContent='Next request: '+new Date(snapshot.nextAt).toLocaleString();
