@@ -8,7 +8,8 @@ const encode=(value:string)=>{let s='';for(const b of new TextEncoder().encode(v
 export function createGameDispatcher(deps:Dependencies){
   const fetcher=deps.fetch||fetch;
   async function gh(path:string,method='GET',body?:unknown){
-    const token=method==='POST'&&/^\/issues\/\d+\/comments$/.test(path)?deps.commentToken||deps.token:deps.token;
+    const ownerAction=method==='POST'&&(path==='/pulls'||/^\/issues\/\d+\/comments$/.test(path));
+    const token=ownerAction?deps.commentToken||deps.token:deps.token;
     const response=await fetcher(BASE+path,{method,headers:{authorization:'Bearer '+token,accept:'application/vnd.github+json','content-type':'application/json','x-github-api-version':'2022-11-28'},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(20000)});
     if(!response.ok){const error=Error('github_'+response.status) as Error&{status:number};error.status=response.status;throw error;}return response.status===204?null:response.json();
   }
