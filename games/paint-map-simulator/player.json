@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "paint-map-simulator",
+  "title": "Paint Map Simulator",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Paint Map Simulator</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"paint-map-simulator\",\"native\":{}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Paint Map Simulator\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/73f374cbab066b8faed30ebddea8d97a.data.unityweb",
+      "bytes": 11564997,
+      "sha256": "664b276e99bd7647c87cae1ed16e0781d0a640537a2e37879c1785b71c3fa24c"
+    },
+    "framework": {
+      "path": "Build/8ddf504b1181ad0a685ceabfa913f2f6.js.unityweb",
+      "bytes": 69526,
+      "sha256": "82217c59114cb3d3fa556b4d6b4c57ee31e8437a8e181d82e0f2ec672a09f03b"
+    },
+    "loader": {
+      "path": "Build/PaperIoSimulator.loader.js",
+      "bytes": 106840,
+      "sha256": "d0057c7d86a4632c52a5b0342399472de3717b430650c76ce105c074cf3d1329"
+    },
+    "code": {
+      "path": "Build/e9c239703f527390844c62b04aec7c77.wasm.unityweb",
+      "bytes": 6030559,
+      "sha256": "7f48e279ac86e7c44d3c0dbcddad5664e9fb51393360f77caae952f0cbbdaf72"
+    }
+  }
+}

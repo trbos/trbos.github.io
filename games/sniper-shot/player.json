@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "sniper-shot",
+  "title": "Sniper Shot",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Sniper Shot</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"sniper-shot\",\"native\":{\"companyName\":\"GoGoMan\",\"productName\":\"Sniper Shot\",\"productVersion\":\"0.7\",\"devicePixelRatio\":1}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Sniper Shot\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/SniperShot_GD.data.unityweb",
+      "bytes": 13398712,
+      "sha256": "2eb5083a3d17597f6f406d2021626b760ccf580e9273fff5802c175e58004100"
+    },
+    "framework": {
+      "path": "Build/SniperShot_GD.framework.js.unityweb",
+      "bytes": 587440,
+      "sha256": "d7d271ca0d1ddd400214afa123380a2be132a0c187cd788f264cc4bec4f627ed"
+    },
+    "loader": {
+      "path": "Build/SniperShot_GD.loader.js",
+      "bytes": 113334,
+      "sha256": "fde744af0c8db805deb015c7f4533648be117671ae531ec91587aa1f98758be3"
+    },
+    "code": {
+      "path": "Build/SniperShot_GD.wasm.unityweb",
+      "bytes": 4340935,
+      "sha256": "83f84046bdd247de301dcf99d46e357afbafcd16e9351fb83167027617c0c585"
+    }
+  }
+}

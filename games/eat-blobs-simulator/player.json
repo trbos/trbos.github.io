@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "eat-blobs-simulator",
+  "title": "Eat Blobs Simulator",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Eat Blobs Simulator</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"eat-blobs-simulator\",\"native\":{\"companyName\":\"Cursora Labs O.Ü\",\"productName\":\"Eat Blobs Simulator\",\"productVersion\":\"0.1n\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Eat Blobs Simulator\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "code": {
+      "path": "Build/1e139915a5376fbfe3577f0257baf219.wasm.unityweb",
+      "bytes": 6766977,
+      "sha256": "574748a16b10dbb7b2f614b1d15d638797a69ae8ace03093c2cda51919c2b48d"
+    },
+    "framework": {
+      "path": "Build/6c30733732d03d30a264f10525008a67.framework.js.unityweb",
+      "bytes": 70755,
+      "sha256": "da30a93aa4f6d51efcce8e257c72d42e2353eff89e9c5c910d3242817641cc53"
+    },
+    "data": {
+      "path": "Build/91b1d4b74bbec8ac4ffe70aaaab2f8b4.data.unityweb",
+      "bytes": 8872887,
+      "sha256": "5f5a78d3dcccade24e05e1545a75a98219d2f193603f3e29217e3f111f41874a"
+    },
+    "loader": {
+      "path": "Build/9853637125e801e9aae48e78dbbdcfca.loader.js",
+      "bytes": 114374,
+      "sha256": "19758841e102daeb8b277ef49953e6e803e95ecc233e27d0dadb73ff6ad4d41f"
+    }
+  }
+}

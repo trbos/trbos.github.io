@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "obby-99-will-lose",
+  "title": "Obby 99 Will Lose",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Obby 99 Will Lose</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"obby-99-will-lose\",\"native\":{}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Obby 99 Will Lose\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/try5.data.unityweb",
+      "bytes": 9747265,
+      "sha256": "a3985f82a37fd94fcdd1978e86cc3c8d92e7558e129fdbb76c86e431a45b320a"
+    },
+    "framework": {
+      "path": "Build/try5.framework.js.unityweb",
+      "bytes": 81562,
+      "sha256": "976ac56ef8f49b81f7cc6c59b6cbe1d6246ce664bdf1de3417db50fc39321e24"
+    },
+    "loader": {
+      "path": "Build/try5.loader.js",
+      "bytes": 44254,
+      "sha256": "cc62f6eb95c3d6723669537804b4010787528ec5986ac9a92cf15dfcafa633b2"
+    },
+    "code": {
+      "path": "Build/try5.wasm.unityweb",
+      "bytes": 8549767,
+      "sha256": "4e2192ba344bd08eacbccb1f10fac4769b8acaa5f25d422f9ffa880032fd48e4"
+    }
+  }
+}

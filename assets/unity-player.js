@@ -3,6 +3,7 @@
   const script = document.currentScript;
   const configUrl = new URL('./player.json',location.href);
   const directory = new URL('./',configUrl);
+  const gameId = directory.pathname.match(/\/games\/([a-z0-9][a-z0-9-]{0,50})\/$/)?.[1];
   const helperUrl = new URL('./unity-assets.js',script.src);
   const host = document.getElementById('unity-frame-host');
   const loading = document.getElementById('unity-loading');
@@ -14,7 +15,7 @@
   let epoch = 0, controller = null, frame = null, channel = null, timer = null, current = null, diskPromise = null, viewport = null;
   const attr = value => String(value).replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));
   const digest = async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
-  const notify = type => {if (parent !== window && current) parent.postMessage({type,id:current.id},'*');};
+  const notify = type => {if (parent !== window && gameId) parent.postMessage({type,id:gameId},location.origin);};
   function disk(){
     if(!diskPromise)diskPromise=new Promise((resolve,reject)=>{
       let done=false;const t=setTimeout(()=>{done=true;reject(Error('cache_timeout'));},1500);
@@ -38,7 +39,7 @@
   }
   function fail(version){if(version!==epoch)return;loading.hidden=true;error.hidden=false;window.UnityPlayerStatus.phase='error';notify('game:error');dispose();}
   function validate(value){
-    if(!value||value.version!==1||!/^[a-z0-9][a-z0-9-]{0,50}$/.test(value.id)||typeof value.title!=='string'||value.title.length>80||typeof value.runtimeHtml!=='string'||value.runtimeHtml.length>65536||!/<head(?:\s[^>]*)?>/i.test(value.runtimeHtml))throw Error();
+    if(!value||value.version!==1||value.id!==gameId||typeof value.title!=='string'||value.title.length>80||typeof value.runtimeHtml!=='string'||value.runtimeHtml.length>65536||!/<head(?:\s[^>]*)?>/i.test(value.runtimeHtml))throw Error();
     if(!value.assets||Object.keys(value.assets).length!==names.length)throw Error();
     if(value.viewport!==undefined&&(!value.viewport||Object.keys(value.viewport).length!==2||value.viewport.width!==600||value.viewport.height!==1000))throw Error();
     let total=0;

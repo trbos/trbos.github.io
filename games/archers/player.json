@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "archers",
+  "title": "Archers",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "framework": {
+      "path": "Build/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
+      "bytes": 368651,
+      "sha256": "e8f8ea041b00a08d12af7f2793336033f6e04df1ca0afbd98bcdcf79665440ef"
+    },
+    "data": {
+      "path": "Build/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
+      "bytes": 1970560,
+      "sha256": "8b2fd68a65ab85ada75a89841bcc0310207797816fce32846d2ac27c43943bc5"
+    },
+    "code": {
+      "path": "Build/b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb",
+      "bytes": 5245879,
+      "sha256": "b3d79160dd82928d895158f823467b5f2e488ecac17f5d68173e3c5cff187e4b"
+    },
+    "loader": {
+      "path": "Build/v111.loader.js",
+      "bytes": 114404,
+      "sha256": "e6704366c0d31dc610c55755e55eb2951735c3d09859a1d77946e16c37a30ef9"
+    }
+  }
+}

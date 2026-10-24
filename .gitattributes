@@ -1,3 +1,5 @@
 assets/bookmarklets/*.txt -text -diff
 polytrack/** -text
-games/**/Build/* -text
+games/**/Build/** -text
+games/**/StreamingAssets/** -text
+games/geometry-dash/assets/** -text

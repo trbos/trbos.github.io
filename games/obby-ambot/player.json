@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "obby-ambot",
+  "title": "Obby Ambot",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Obby Ambot</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"obby-ambot\",\"native\":{\"companyName\":\"DefaultCompany\",\"productName\":\"Roblox Shooter\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Obby Ambot\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/sdsd.data.unityweb",
+      "bytes": 8840419,
+      "sha256": "756878f718c1d52ef76886c7e08977137bb8e1e39038d023243cd17eaf4e6096"
+    },
+    "framework": {
+      "path": "Build/sdsd.framework.js.unityweb",
+      "bytes": 70746,
+      "sha256": "eecb09678fb65a51c64c6c737854032f5e7717d6dd7920ff4e80be5ea66ef409"
+    },
+    "loader": {
+      "path": "Build/sdsd.loader.js",
+      "bytes": 114374,
+      "sha256": "19758841e102daeb8b277ef49953e6e803e95ecc233e27d0dadb73ff6ad4d41f"
+    },
+    "code": {
+      "path": "Build/sdsd.wasm.unityweb",
+      "bytes": 6783651,
+      "sha256": "83d8be53abe4df7bac103e72c07b453a95a800e7abb83820576b9890ba60e16c"
+    }
+  }
+}

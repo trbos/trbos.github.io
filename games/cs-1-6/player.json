@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "cs-1-6",
+  "title": "Cs 1 6",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Cs 1 6</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"cs-1-6\",\"native\":{\"companyName\":\"FoXSkr\",\"productName\":\"Contra\",\"productVersion\":\"1.9.4\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Cs 1 6\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/Web-GL.data.unityweb",
+      "bytes": 15613199,
+      "sha256": "1b3482e2c00fec3259c73cfe424dff5ba661b8e5b000f5e67b309ffbe862587c"
+    },
+    "framework": {
+      "path": "Build/Web-GL.framework.js.unityweb",
+      "bytes": 102495,
+      "sha256": "2371ef6ae8e94d2cc23d288ee8fa291f63fbcf3acec347c46d057695ab921916"
+    },
+    "loader": {
+      "path": "Build/Web-GL.loader.js",
+      "bytes": 116380,
+      "sha256": "ff9a46e1f07ffe6380f9dd45b6814d3a74d49c4f4967a9ef114330c4cf9d3cfd"
+    },
+    "code": {
+      "path": "Build/Web-GL.wasm.unityweb",
+      "bytes": 8950554,
+      "sha256": "c3742bbe78183bd5c6a07d07f967cf37318866a5ce8d00f3fd9fd931aa3c794a"
+    }
+  }
+}

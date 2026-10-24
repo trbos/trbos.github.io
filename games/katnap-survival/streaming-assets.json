@@ -1,0 +1,19 @@
+{
+  "sourceRepository": "https://github.com/maplehe7/edu",
+  "sourceRevision": "7c5042c8247d0d5f96f347f54dff36f711901b67",
+  "verifiedAtDownload": true,
+  "files": [
+    {
+      "path": "StreamingAssets/Audio/Sfx/ambient.mp3",
+      "bytes": 484835,
+      "sha256": "be8a08b7aadfb593e18eb9ffeb4a23a261f7d25eb1208b35b3d79221941085a4"
+    },
+    {
+      "path": "StreamingAssets/futag.mp4",
+      "bytes": 2081476,
+      "sha256": "f52f2abe8d47f29c20cb58d2a559fc28fe0ecad6356c4bd55131a0b91ae73da2"
+    }
+  ],
+  "cachePolicy": "Native StreamingAssets media use browser HTTP caching. They are not part of the four Build assets in the IndexedDB transport/integrity handshake.",
+  "missingUpstreamResource": "StreamingAssets/futag_2.mp4 is requested by the native game but absent from the pinned upstream file tree; active survival gameplay is verified."
+}

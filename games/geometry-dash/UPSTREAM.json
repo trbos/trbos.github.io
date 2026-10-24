@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/web-dashers/web-dashers.github.io",
+  "revision": "84b123b20bca82066350fefe8b49849a24da701c",
+  "upstreamReadme": "UPSTREAM-README.md",
+  "changes": [
+    "Trusted local player with opaque sandbox, verified static-asset cache and game-only storage bridge",
+    "Skip absent optional second ground layers 01 through 07",
+    "Use the existing GJ_logo_001.png atlas frame during startup",
+    "Transition from completed boot loader in a microtask instead of a scene-clock delay",
+    "Add PCM16 WAV fallbacks decoded from the six original Ogg effects for Safari",
+    "Ignore optional song IndexedDB initialization failure inside the opaque sandbox",
+    "Do not run unused account-session requests or the redundant upstream localStorage asset cache",
+    "Keep the native update log available in its menu without automatically opening the outdated popup"
+  ]
+}

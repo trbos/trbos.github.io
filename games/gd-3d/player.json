@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "gd-3d",
+  "title": "Gd 3d",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Gd 3d</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"gd-3d\",\"native\":{\"companyName\":\"DefaultCompany\",\"productName\":\"GeometryDash3d\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Gd 3d\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/GeometryDash.data.unityweb",
+      "bytes": 6378391,
+      "sha256": "19df9cf2272cc9d882de8fb65abdcf3bd0fda1aacffeb6c291d44ac873c4bdfc"
+    },
+    "framework": {
+      "path": "Build/GeometryDash.framework.js.unityweb",
+      "bytes": 69558,
+      "sha256": "1fc80f141dcf1e3ecaf3ecf9b4f63022f468de65ac2b09451a539d01d2174121"
+    },
+    "loader": {
+      "path": "Build/GeometryDash.loader.js",
+      "bytes": 114374,
+      "sha256": "19758841e102daeb8b277ef49953e6e803e95ecc233e27d0dadb73ff6ad4d41f"
+    },
+    "code": {
+      "path": "Build/GeometryDash.wasm.unityweb",
+      "bytes": 4969630,
+      "sha256": "9595432188b754eb73384d341f191b86442f77f64b58f639acaf6edb95dc83f9"
+    }
+  }
+}

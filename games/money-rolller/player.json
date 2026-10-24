@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "money-rolller",
+  "title": "Money Rolller",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Money Rolller</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"money-rolller\",\"native\":{\"companyName\":\"Pocket Snake\",\"productName\":\"Money Roller\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Money Rolller\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/build.data.unityweb",
+      "bytes": 5583690,
+      "sha256": "df94b081d5a548d976359d7cf14795a5f5786ccfdc64cdd96ada41228f3a5c21"
+    },
+    "framework": {
+      "path": "Build/build.framework.js.unityweb",
+      "bytes": 68744,
+      "sha256": "dcf502eefb9983ecb044c6859d1767b8e7d7be29ec10ca425573469d08dac851"
+    },
+    "loader": {
+      "path": "Build/build.loader.js",
+      "bytes": 112763,
+      "sha256": "9181e4ad175cb6b5105e6e0cd79f3a28d0f94b94cadb0e4ce354001c0622c19e"
+    },
+    "code": {
+      "path": "Build/build.wasm.unityweb",
+      "bytes": 5437176,
+      "sha256": "b52188a45b26e83f8cec4e6307e01d67dd42813939fb327ac819af61f1366da1"
+    }
+  }
+}

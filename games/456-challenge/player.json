@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "456-challenge",
+  "title": "456 Challenge",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>456 Challenge</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"456-challenge\",\"native\":{\"companyName\":\"DefaultCompany\",\"productName\":\"Obb3\",\"productVersion\":\"0.1\",\"devicePixelRatio\":1}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"456 Challenge\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/webgl2.data.unityweb",
+      "bytes": 15166347,
+      "sha256": "5a1813178f54dc14ec58c3f39c22f0b5e80c0b3b1abd980b307f2de488d1018e"
+    },
+    "framework": {
+      "path": "Build/webgl2.framework.js.unityweb",
+      "bytes": 71974,
+      "sha256": "d073d3810b150afa89f2accceb178ca0268bb36eafcdf41e0fc13a9080717ae6"
+    },
+    "loader": {
+      "path": "Build/webgl2.loader.js",
+      "bytes": 117566,
+      "sha256": "c74631dea228eae23f9baea0cc0dd772298511f5c04c5c1edd9e6ae6fd625fd1"
+    },
+    "code": {
+      "path": "Build/webgl2.wasm.unityweb",
+      "bytes": 8124505,
+      "sha256": "5180b548044b982914e46ace4f003ed59abc0185633ea63c70fedaf8e00fad0a"
+    }
+  }
+}

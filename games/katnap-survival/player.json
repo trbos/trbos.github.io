@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "katnap-survival",
+  "title": "Katnap Survival",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Katnap Survival</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"katnap-survival\",\"native\":{}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Katnap Survival\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "assets": {
+    "data": {
+      "path": "Build/Cutnab.data.unityweb",
+      "bytes": 17054693,
+      "sha256": "0178f46c9b4441fe60cdbe41fd9a48722c8d1f05b4e5b6c77759368217fc1319"
+    },
+    "framework": {
+      "path": "Build/Cutnab.framework.js.unityweb",
+      "bytes": 71520,
+      "sha256": "df9bb5756a853d043c1b33acf966df226ed00bac30c3708839515426a3e4586b"
+    },
+    "loader": {
+      "path": "Build/Cutnab.loader.js",
+      "bytes": 114404,
+      "sha256": "e6704366c0d31dc610c55755e55eb2951735c3d09859a1d77946e16c37a30ef9"
+    },
+    "code": {
+      "path": "Build/Cutnab.wasm.unityweb",
+      "bytes": 5882028,
+      "sha256": "36df212f9968dddc2375d2ac14698e5d002877c8058d38cda955abb473b5230b"
+    }
+  }
+}
