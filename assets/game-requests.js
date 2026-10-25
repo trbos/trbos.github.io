@@ -5,14 +5,14 @@
   const STAGES={waiting:'Queued',queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
-  const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-labelledby','game-request-button-title');button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span id="game-request-button-title">Add a game!</span><span id="game-request-wait" class="game-request-wait" aria-live="polite">Estimating…</span></span>';grid.prepend(button);
-  const banner=env.document.createElement('button');banner.type='button';banner.className='container game-request-banner';banner.hidden=true;
-  banner.innerHTML='<span class="game-request-banner-name"></span><span class="game-request-banner-stage"></span><progress max="100" aria-label="Active game request progress"></progress>';grid.before(banner);
+  const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span class="game-request-add" id="game-request-button-title">Add a game!</span><span class="game-request-wait" id="game-request-wait" aria-live="polite">Checking…</span><span class="game-request-current"><span class="game-request-current-name"></span><span class="game-request-current-stage"></span><progress max="100" aria-label="Active game request progress"></progress></span></span>';grid.prepend(button);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
   dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
   const form=dialog.querySelector('form'),submit=form.querySelector('[type=submit]'),notice=dialog.querySelector('.game-request-notice'),result=dialog.querySelector('.game-request-result'),stage=dialog.querySelector('.game-request-stage'),bar=result.querySelector('progress'),detail=result.querySelector('.game-request-detail'),play=result.querySelector('a'),retry=dialog.querySelector('.game-request-retry');
   const waitLabel=button.querySelector('.game-request-wait');
+  const addLabel=button.querySelector('.game-request-add'),current=button.querySelector('.game-request-current');
+  const currentName=button.querySelector('.game-request-current-name'),currentStage=button.querySelector('.game-request-current-stage'),currentBar=button.querySelector('progress');
   submit.disabled=true;
   let key=null,snapshot=null,pending=null,existing=null,busy=false,timer=null,controller=null,ticket=0;
   let statusFailed=false,owner=Boolean(env.SiteOwner?.isOwner?.());
@@ -51,23 +51,26 @@
   function validEstimate(value){return Array.isArray(value)&&value.length===2&&value.every(v=>Number.isFinite(v)&&v>=0&&v<=86400)&&value[1]>=value[0]&&value[1]>0;}
   function activeWait(job){
     if(!job)return 'No wait';
-    const reliable=Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&Number.isFinite(Date.parse(job.estimatedAt));
+    const dated=Number.isFinite(Date.parse(job.estimatedAt));
+    const reliable=job.estimateSource==='budget'?dated:job.estimateSource==='history'&&Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&dated;
     if(!reliable)return 'Estimating…';
     if(job.estimateOverrun===true)return 'Taking longer';
     return validEstimate(job.remainingSeconds)?timeText(job.remainingSeconds,0,true):'Estimating…';
   }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
-    button.hidden=!owner&&(!snapshot||snapshot.paused===true);
-    waitLabel.textContent=statusFailed?'Estimating…':activeWait(active);
-    banner.hidden=!active;
-    if(active){
-      const name=banner.querySelector('.game-request-banner-name'),label=banner.querySelector('.game-request-banner-stage'),progress=banner.querySelector('progress');
-      if(name.textContent!==active.name)name.textContent=active.name;
-      const text=STAGES[active.stage]+(active.progress===null?'':' · '+active.progress+'%');if(label.textContent!==text)label.textContent=text;
-      progress.hidden=active.progress===null;if(active.progress!==null)progress.value=active.progress;
-      banner.setAttribute('aria-label',active.name+' · '+text);
-    }
+    const allowed=owner||snapshot?.paused!==true,showCurrent=Boolean(active);
+    button.hidden=(!snapshot&&!owner)||(!showCurrent&&!allowed);
+    addLabel.hidden=!allowed;
+    waitLabel.textContent=statusFailed?'Estimating…':active?activeWait(active):snapshot?'No wait':'Checking…';
+    current.hidden=!showCurrent;
+    if(showCurrent){
+      currentName.textContent=active.name;
+      const text=STAGES[active.stage]+(active.progress===null?'':' · '+active.progress+'%');
+      currentStage.textContent=text;currentBar.hidden=active.progress===null;
+      if(active.progress!==null)currentBar.value=active.progress;
+      button.setAttribute('aria-label',(allowed?'Add a game. ':'')+active.name+' · '+text+' · '+waitLabel.textContent);
+    }else button.setAttribute('aria-label',allowed?'Add a game! '+waitLabel.textContent:waitLabel.textContent);
     submit.disabled=busy||!snapshot?.ready||(!owner&&(Boolean(active)||snapshot?.paused===true));
     form.hidden=owner?!snapshot?.ready:Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
     form.elements.game.disabled=busy;form.elements.url.disabled=busy;
@@ -87,7 +90,8 @@
     const estimate=form.querySelector(".game-request-estimate");estimate.hidden=true;estimate.textContent='';
     const remaining=result.querySelector(".game-request-remaining");remaining.hidden=!job||terminal.has(job.stage)||Boolean(existing);
     if(!remaining.hidden){
-      const reliable=Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&Number.isFinite(Date.parse(job.estimatedAt));
+      const dated=Number.isFinite(Date.parse(job.estimatedAt));
+      const reliable=job.estimateSource==='budget'?dated:job.estimateSource==='history'&&Number.isInteger(job.estimateSamples)&&job.estimateSamples>=3&&dated;
       remaining.textContent=reliable&&job.estimateOverrun===true?'Taking longer than estimated':
         reliable&&validEstimate(job.remainingSeconds)?timeText(job.remainingSeconds,0,true):'Estimating…';
     }
@@ -131,7 +135,6 @@
   function close(){ticket++;busy=false;env.clearTimeout(timer);timer=null;controller?.abort();dialog.close();schedule();}
   function open(){if(dialog.open)return;ticket++;busy=false;controller?.abort();dialog.showModal();notice.textContent='Checking…';void refresh();}
   button.addEventListener('click',open);form.addEventListener('submit',send);dialog.querySelector('.game-request-close').addEventListener('click',close);
-  banner.addEventListener('click',open);
   env.addEventListener('site:owner',event=>{owner=event.detail?.owner===true&&Boolean(env.SiteOwner?.isOwner?.());render();});
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});retry.addEventListener('click',()=>void refresh());
   env.document.addEventListener('visibilitychange',()=>{if(env.document.visibilityState==='hidden'){env.clearTimeout(timer);timer=null;}else if(dialog.open||watching())void refresh();});
