@@ -16,3 +16,13 @@
 .game-request-estimate,.game-request-remaining{margin:8px 0 0;color:var(--muted,var(--text));font-size:13px;line-height:1.4}
 
 @media(max-width:560px){.game-request-card-heading{padding:12px}.game-request-current-stage{font-size:11px}}
+
+/* The fill reports real milestones; the moving marker only signals activity. */
+.game-request-meter{position:relative;display:block;isolation:isolate;grid-column:1/-1;width:100%;height:3px;overflow:hidden;border-radius:3px;background:var(--line);--progress:0%}
+.game-request-result .game-request-meter{height:8px;margin-top:12px;border-radius:8px;background:var(--band)}
+.game-request-meter[hidden]{display:none!important}
+.game-request-meter progress{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;opacity:0;pointer-events:none}
+.game-request-meter::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--progress);background:var(--accent);opacity:.7;transition:width .8s ease}
+.game-request-meter[data-running=true]::after{content:"";position:absolute;inset:0 auto 0 0;width:30%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:game-request-activity 1.9s linear infinite;will-change:transform}
+@keyframes game-request-activity{from{transform:translateX(-110%)}to{transform:translateX(440%)}}
+@media(prefers-reduced-motion:reduce){.game-request-meter::before{transition:none}.game-request-meter[data-running=true]::after{animation:none;transform:translateX(110%);opacity:.45}}

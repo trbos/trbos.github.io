@@ -5,9 +5,9 @@
   const STAGES={waiting:'Queued',queued:'Starting',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
-  const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span class="game-request-add" id="game-request-button-title">Add a game!</span><span class="game-request-wait" id="game-request-wait" aria-live="polite">Checking…</span><span class="game-request-current"><span class="game-request-current-name"></span><span class="game-request-current-stage"></span><progress max="100" aria-label="Active game request progress"></progress></span></span>';grid.prepend(button);
+  const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span class="game-request-add" id="game-request-button-title">Add a game!</span><span class="game-request-wait" id="game-request-wait" aria-live="polite">Checking…</span><span class="game-request-current"><span class="game-request-current-name"></span><span class="game-request-current-stage"></span><span class="game-request-meter"><progress max="100" aria-label="Active game request progress"></progress></span></span></span>';grid.prepend(button);
   const dialog=env.document.createElement('dialog');dialog.className='game-request-dialog';dialog.setAttribute('aria-labelledby','game-request-title');
-  dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><progress max="100" value="0" aria-label="Game request progress"></progress><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
+  dialog.innerHTML='<div class="game-request-heading"><h2 id="game-request-title">Add a game!</h2><button type="button" class="game-request-close" aria-label="Close">×</button></div><form><label>Game name<input name="game" required minlength="2" maxlength="100" autocomplete="off"></label><label>Link (optional)<input name="url" type="url" maxlength="800" placeholder="https://" autocomplete="off"></label><button type="submit">Request game</button><p class="game-request-estimate"></p></form><p class="game-request-notice" role="status" aria-live="polite"></p><div class="game-request-result" hidden><h3></h3><p class="game-request-stage" role="status" aria-live="polite"></p><span class="game-request-meter"><progress max="100" value="0" aria-label="Game request progress"></progress></span><p class="game-request-remaining" hidden></p><p class="game-request-detail"></p><a class="game-request-play" hidden>Play</a></div><button type="button" class="game-request-retry" hidden>Retry</button>';
   env.document.body.append(dialog);
   const form=dialog.querySelector('form'),submit=form.querySelector('[type=submit]'),notice=dialog.querySelector('.game-request-notice'),result=dialog.querySelector('.game-request-result'),stage=dialog.querySelector('.game-request-stage'),bar=result.querySelector('progress'),detail=result.querySelector('.game-request-detail'),play=result.querySelector('a'),retry=dialog.querySelector('.game-request-retry');
   const waitLabel=button.querySelector('.game-request-wait');
@@ -57,6 +57,13 @@
     if(job.estimateOverrun===true)return 'Taking longer';
     return validEstimate(job.remainingSeconds)?timeText(job.remainingSeconds,0,true):'Estimating…';
   }
+  function meter(progress,job){
+    const host=progress.parentElement;
+    host.hidden=!job||job.progress===null;
+    const running=Boolean(job&&!terminal.has(job.stage)&&job.stage!=='waiting'&&!statusFailed);
+    host.dataset.running=String(running);
+    if(job&&job.progress!==null){progress.value=job.progress;host.style.setProperty('--progress',job.progress+'%');}
+  }
   function render(keepNotice=false){
     const own=snapshot?.request,active=snapshot?.active,other=active&&active.id!==own?.id,job=other?active:own;
     const allowed=owner||snapshot?.paused!==true,showCurrent=Boolean(active);
@@ -67,21 +74,20 @@
     if(showCurrent){
       currentName.textContent=active.name;
       const text=STAGES[active.stage]+(active.progress===null?'':' · '+active.progress+'%');
-      currentStage.textContent=text;currentBar.hidden=active.progress===null;
-      if(active.progress!==null)currentBar.value=active.progress;
+      currentStage.textContent=text;meter(currentBar,active);
       button.setAttribute('aria-label',(allowed?'Add a game. ':'')+active.name+' · '+text+' · '+waitLabel.textContent);
-    }else button.setAttribute('aria-label',allowed?'Add a game! '+waitLabel.textContent:waitLabel.textContent);
+    }else{meter(currentBar,null);button.setAttribute('aria-label',allowed?'Add a game! '+waitLabel.textContent:waitLabel.textContent);}
     submit.disabled=busy||!snapshot?.ready||(!owner&&(Boolean(active)||snapshot?.paused===true));
     form.hidden=owner?!snapshot?.ready:Boolean(active)||snapshot?.paused===true||!snapshot?.ready;
     form.elements.game.disabled=busy;form.elements.url.disabled=busy;
     result.hidden=!job&&!existing;
     if(existing){
-      result.querySelector('h3').textContent=existing.name;stage.textContent='Already added';detail.hidden=true;bar.hidden=true;play.hidden=false;
+      result.querySelector('h3').textContent=existing.name;stage.textContent='Already added';detail.hidden=true;meter(bar,null);play.hidden=false;
       play.href=env.location.pathname+'?game='+encodeURIComponent(existing.id)+'#/games/'+existing.id;
     }else if(job){
       result.querySelector('h3').textContent=job.name;stage.textContent=STAGES[job.stage];
       detail.textContent=job.stage==='unavailable'&&/^No legally hostable version (?:was found|exists)[:.]/i.test(job.detail)?'Could not verify permission for the versions checked.':job.detail;
-      detail.hidden=!job.detail;bar.hidden=job.progress===null;if(job.progress!==null)bar.value=job.progress;
+      detail.hidden=!job.detail;meter(bar,job);
       play.hidden=job.stage!=='added'||!job.gameId;
       if(!play.hidden)play.href=env.location.pathname+'?game='+encodeURIComponent(job.gameId)+'#/games/'+job.gameId;
     }
@@ -112,7 +118,7 @@
     }finally{env.clearTimeout(timeout);if(controller===abort)controller=null;}
   }
   const errors={cookies_required:'Enable cookies to request a game.',storage_unavailable:'Storage unavailable. Retry.',invalid_name:'Enter a game name.',invalid_url:'Use a public HTTPS game link.',filtered:'That request isn’t allowed.',paused:'New requests paused.',busy:'Another game is being added.',worker_unavailable:'Automatic additions need setup.',request_changed:'Request changed. Retry.'};
-  function fail(error){statusFailed=true;waitLabel.textContent='Estimating…';if(dialog.open){notice.textContent=[401,403].includes(error?.status)?'Sign in again.':errors[error?.code||error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
+  function fail(error){statusFailed=true;meter(currentBar,snapshot?.active);meter(bar,snapshot?.active||snapshot?.request);waitLabel.textContent='Estimating…';if(dialog.open){notice.textContent=[401,403].includes(error?.status)?'Sign in again.':errors[error?.code||error?.message]||'Connection lost. Retry.';retry.hidden=false;}}
   function schedule(){env.clearTimeout(timer);timer=null;if(env.document.visibilityState!=='hidden'&&(dialog.open||watching()))timer=env.setTimeout(()=>void refresh(),snapshot?.active||dialog.open?5000:15000);}
   async function refresh(){
     if(busy||!dialog.open&&!watching())return;const version=ticket;busy=true;retry.hidden=true;
