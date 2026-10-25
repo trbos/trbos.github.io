@@ -1,0 +1,107 @@
+{
+  "requestId": "0cc81b36-58f3-4e73-b974-7c7d5595fe24",
+  "name": "Crossy Road",
+  "url": null,
+  "stage": "ready",
+  "gameId": "crossy-road",
+  "displayName": "Crossy Road",
+  "detail": "",
+  "alreadyAvailable": true,
+  "ownerReplacement": true,
+  "license": {
+    "name": "Browser distribution; redistribution permission not independently verified, owner review applies",
+    "url": "https://crossyroad.me/play/"
+  },
+  "quality": {
+    "passed": true,
+    "adFree": true,
+    "contentAppropriate": true,
+    "played": true,
+    "retried": true,
+    "controls": true,
+    "coldMs": 7214,
+    "warmMs": 7077,
+    "sourcesCompared": [
+      "https://crossyroad.me/play/",
+      "https://github.com/EvanBacon/Expo-Crossy-Road",
+      "https://github.com/SepraDC/crossy-js"
+    ],
+    "evidence": "Native Edge session through the actual host: meaningful keyboard movement, real death/end state, Restart and a second round with touch inputs; all three worlds, four responsive sizes, and warm reopening passed. Namespaced score/coins and unrelated origin storage survived. No page errors, missing assets or external HTTP requests. Windows bundled WebKit lacks AudioContext and could not run this build; physical iPad was not tested. Runtime read-only instrumentation during a separate diagnostic confirmed real death; release QA used unmodified runtime.",
+    "selection": {
+      "selectedSource": "https://crossyroad.me/play/",
+      "reason": "Selected the substantially fuller three-world browser distribution after testing the installed single-character remake and the Expo demo. This build includes distinct Original, Space and Dinosaur worlds, seventeen native character definitions, sound, coins and original game feedback. The Expo demo stalled on missing model paths and its source had major character/menu paths disabled. Native play, death and a preserved-progress restart were exercised on the selected build. Source authenticity and redistribution permission remain unverified; branding is not treated as proof.",
+      "candidates": [
+        {
+          "source": "https://crossyroad.me/play/",
+          "version": "Three-world browser build retrieved 2026-10-24",
+          "kind": "complete-port",
+          "tested": true,
+          "completeness": 4,
+          "controls": 4,
+          "polish": 4,
+          "performance": 4,
+          "evidence": "All three worlds rendered with the existing models, seventeen native character definitions were inspected, real play/death/restart passed, and touch plus four viewport layouts were checked. Edge cold/warm were about seven seconds on this host."
+        },
+        {
+          "source": "https://github.com/EvanBacon/Expo-Crossy-Road",
+          "version": "Public Expo demo inspected 2026-10-24",
+          "kind": "fan-remake",
+          "tested": true,
+          "completeness": 2,
+          "controls": 1,
+          "polish": 3,
+          "performance": 1,
+          "evidence": "Opened the deployed Expo demo: game model loading stalled, React/runtime errors occurred, and model requests failed. Source inspection found most characters and menu actions disabled or empty. Not suitable as the replacement."
+        },
+        {
+          "source": "https://github.com/SepraDC/crossy-js",
+          "version": "Installed build 73f680678b144e3b34e653c05e8f9a32bf3f9202",
+          "kind": "fan-remake",
+          "tested": true,
+          "completeness": 2,
+          "controls": 4,
+          "polish": 2,
+          "performance": 4,
+          "evidence": "Opened and inspected the existing hosted game and local baseline. The basic single-character crossing loop runs, but lacks the selected build's three distinct environments, native character progression, menus and richer feedback."
+        }
+      ]
+    }
+  },
+  "qaSteps": [
+    {
+      "type": "tap",
+      "x": 0.38,
+      "y": 0.51
+    },
+    {
+      "type": "key",
+      "key": "ArrowRight"
+    },
+    {
+      "type": "key",
+      "key": "ArrowLeft"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "button",
+      "text": "Restart"
+    },
+    {
+      "type": "tap",
+      "x": 0.38,
+      "y": 0.51
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    }
+  ],
+  "limitations": [
+    "Windows bundled WebKit has no AudioContext; that engine was blocked before gameplay.",
+    "iPad checks were viewport/touch emulation, not physical hardware.",
+    "The selected distribution is not claimed to contain every character or feature of the mobile original."
+  ]
+}

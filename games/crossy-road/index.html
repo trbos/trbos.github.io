@@ -1,30 +1,111 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crossy Road</title>
-    <script type="module" crossorigin src="./assets/main-B7XspBuF.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/main-B5u6Tqmp.css">
-  </head>
-  <body>
-    <canvas class="game"></canvas>
-    <div id="controls">
-      <div>
-        <button id="forward">▲</button>
-        <button id="left">◀</button>
-        <button id="backward">▼</button>
-        <button id="right">▶</button>
-      </div>
-    </div>
-    <div id="score">0</div>
-    <div id="result-container">
-      <div id="result">
-        <h1>Game Over</h1>
-        <p>Your score: <span id="final-score">0</span></p>
-        <button id="retry">Retry</button>
-      </div>
-    </div>
-  </body>
+<head><!-- w3-yield --><script>/* w3-yield v1 — INP guard for games framed on the same site.
+   A same-site iframe shares the parent page's main thread, so the paint that ends a click on
+   the host page (Wide, Fullscreen, stars, links…) also waits for the game's animation frame.
+   When the parent sees an input, skip ONE game frame (the callback is re-queued for the next
+   frame), so the browser paints the page's response first. Nothing changes inside the game:
+   its own input is untouched and it loses one frame per click outside it. */
+(function () {
+  var w = window, raf = w.requestAnimationFrame, caf = w.cancelAnimationFrame
+  if (!raf || w.__w3yield || w === w.top) return
+  var par; try { par = w.top; par.document } catch (e) { return } // cross-origin: nothing shared
+  w.__w3yield = 1
+  var hold = 0, map = {}, seq = 0
+  function mark() { if (!hold) hold = 1 }
+  try {
+    ;['pointerdown', 'keydown', 'click'].forEach(function (t) { par.addEventListener(t, mark, true) })
+  } catch (e) {}
+  w.requestAnimationFrame = function (cb) {
+    var id = ++seq
+    var run = function (ts) {
+      if (hold) { if (hold === 1) { hold = 2; setTimeout(function () { hold = 0 }, 0) } map[id] = raf.call(w, run); return }
+      delete map[id]; cb(ts)
+    }
+    map[id] = raf.call(w, run)
+    return id
+  }
+  w.cancelAnimationFrame = function (id) { if (map[id] != null) { caf.call(w, map[id]); delete map[id] } }
+  try { w.webkitRequestAnimationFrame = w.requestAnimationFrame } catch (e) {}
+})()</script><!-- /w3-yield -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>Crossy Road</title><link rel="icon" href="data:,">
+<script>
+/* The build was published for poki.com and reads document.domain / referrer; keep it on
+   its home turf and block the sitelock redirect. Everything else is served from this folder. */
+(function(){
+  var bad = /poki\.com\/sitelock|poki-gdn\.com\/sitelock|poki\.com\/embed-error/i;
+  try {
+    Object.defineProperty(document, 'domain', { get: function(){ return 'poki.com'; }, set: function(){} });
+    Object.defineProperty(document, 'referrer', { get: function(){ return 'https://poki.com/'; }, set: function(){} });
+  } catch (e) {}
+  window.open = function(){ return null; };
+  try {
+    var A = window.location.assign.bind(window.location), R = window.location.replace.bind(window.location);
+    window.location.assign = function(u){ if (u && bad.test(String(u))) return; return A(u); };
+    window.location.replace = function(u){ if (u && bad.test(String(u))) return; return R(u); };
+    var d = Object.getOwnPropertyDescriptor(window.Location.prototype, 'href');
+    if (d && d.set) Object.defineProperty(window.Location.prototype, 'href', { configurable: true, enumerable: true, get: d.get,
+      set: function(v){ if (v && bad.test(String(v))) return; return d.set.call(this, v); } });
+  } catch (e) {}
+  // Block the real Poki SDK if the game tries to inject it; the stub below answers instead.
+  var desc = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src'), ce = document.createElement;
+  document.createElement = function(tag){
+    var el = ce.call(document, tag);
+    if (String(tag).toLowerCase() === 'script') Object.defineProperty(el, 'src', {
+      set: function(v){ if (v && /poki-sdk/.test(String(v))) { setTimeout(function(){ if (el.onload) el.onload(); }, 10); return; } desc.set.call(this, v); },
+      get: function(){ return desc.get.call(this); }, configurable: true });
+    return el;
+  };
+  var base = {
+    init: function(){ return Promise.resolve(); },
+    commercialBreak: function(){ return Promise.resolve(); },
+    rewardedBreak: function(){ return Promise.resolve(true); },
+    shareableURL: function(){ return Promise.resolve(location.href); },
+    getURLParam: function(n){ return new URLSearchParams(location.search).get(n) || ''; },
+    isAdBlocked: function(){ return false; }, isAdEnabled: function(){ return true; }
+  };
+  window.PokiSDK = new Proxy(base, { get: function(t, p){
+    if (p in t) return t[p];
+    return typeof p === 'string' && p.indexOf('is') === 0 ? function(){ return false; } : function(){ return Promise.resolve(); };
+  } });
+})();
+</script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="app-store-interstitial.css">
+<style>
+.worldSwitcher__button img { background: #5d6b84; }
+.worldSwitcher__button[data-busy] { opacity: .55; cursor: progress; }
+</style>
+<script src="audio-pack.js"></script><script src="integration.js"></script><script src="scripts/three.min.js"></script><script src="scripts/tween.min.js"></script><script src="scripts/extra.min.js"></script>
+</head>
+<body>
+<button class="crossy-restart" type="button" onclick="location.reload()">Restart</button>
+<div class="worldSwitcher" aria-label="World">
+  <button class="worldSwitcher__button" data-world="original" type="button" title="Original world"><img alt="Original" src="sprites/switcher/original-s-v2.jpg" width="176" height="88" decoding="async"></button>
+  <button class="worldSwitcher__button" data-world="space" type="button" title="Space world"><img alt="Space" src="sprites/switcher/space-s-v2.jpg" width="176" height="88" decoding="async"></button>
+  <button class="worldSwitcher__button" data-world="dinosaur" type="button" title="Dinosaur world"><img alt="Dinosaur" src="sprites/switcher/dinosaur-blue-s-v2.jpg" width="176" height="88" decoding="async"></button>
+</div>
+<script src="scripts/bootstrap.min.js"></script>
+<script>
+window.addEventListener('load', function () {
+  var starts = { original: 0, space: 5, dinosaur: 12 };
+  function uiWorld(value) { return value === 'original_cast' ? 'original' : value; }
+  document.querySelectorAll('.worldSwitcher__button').forEach(function (button) {
+    var world = button.getAttribute('data-world');
+    button.setAttribute('aria-pressed', String(uiWorld(localStorage.getItem('currentWorld')) === world));
+    button.addEventListener('click', function () {
+      var previous = uiWorld(localStorage.getItem('currentWorld')), character = localStorage.getItem('selectedChar');
+      if (previous && character !== null) localStorage.setItem('character.' + previous, character);
+      if (previous === world) return;
+      localStorage.setItem('currentWorld', world === 'original' ? 'original_cast' : world);
+      localStorage.setItem('selectedChar', localStorage.getItem('character.' + world) || String(starts[world]));
+      location.reload();
+    });
+  });
+});
+</script>
+
+</body>
 </html>
- 
