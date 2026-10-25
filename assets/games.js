@@ -4,7 +4,7 @@
     Object.freeze({"id":"hextris","name":"Hextris","url":"games/hextris/","trustedPlayer":true}),
     Object.freeze({"id":"geometry-dash","name":"Geometry Dash","url":"games/geometry-dash/","trustedPlayer":true}),
     Object.freeze({"id":"jambling","name":"Jambling","url":"https://snoozingmax.github.io/Jambling/","external":true}),
-    Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/?v=loop-11","trustedPlayer":true}),
+    Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/?v=gamepad-12","trustedPlayer":true}),
     Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true}),
     Object.freeze({"id":"eaglercraft","name":"Eaglercraft","url":"games/eaglercraft/","trustedPlayer":true,"startup":"heavy"})
   ]);
@@ -49,7 +49,7 @@
     loading.hidden = false; error.hidden = true;
     error.querySelector('p').textContent='Unable to load game.';
     frame.title = game.name;
-    frame.allow = 'autoplay; fullscreen; gamepad; clipboard-write';
+    frame.allow = 'autoplay; fullscreen; '+(game.id==='archers'?'gamepad *':'gamepad')+'; clipboard-write';
     frame.allowFullscreen = true;
     frame.referrerPolicy = 'no-referrer';
     if(game.external)frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-pointer-lock');

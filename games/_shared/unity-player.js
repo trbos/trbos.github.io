@@ -41,7 +41,7 @@
   }
   function timeout(version){
     const status=window.UnityPlayerStatus,label=startupLabels[status.startupStep],r=status.render;
-    const detail=status.startupStep==='render'&&r?' (frames '+r.frames+'; ticks '+r.loopEntries+'; clock '+r.clockNative+'/'+r.clockTimer+'; pixels '+r.visible+'/'+r.colored+'; '+(r.lost?'context lost':r.width+'x'+r.height)+')':'';
+    const detail=status.startupStep==='render'&&r?' (frames '+r.frames+'; ticks '+r.loopEntries+'; pixels '+r.visible+'/'+r.colored+'; '+(r.lost?'context lost':r.width+'x'+r.height)+')':'';
     fail(version,(label?label+' timed out':'Loading timed out')+detail+'.');
   }
   function fail(version,reason){
@@ -105,7 +105,7 @@
       const text=await manifest(signal);const config=validate(JSON.parse(text));if(version!==epoch)return;current=config;document.title=config.title;window.UnityPlayerStatus.id=config.id;
       const policy="default-src 'none'; script-src "+directory.href+' '+helperUrl.href+' '+new URL('./local-platform.js',script.src).href+' '+new URL('./other-platform.js',script.src).href+" blob: 'unsafe-eval' 'wasm-unsafe-eval'; style-src "+directory.href+" 'unsafe-inline'; img-src "+directory.href+" blob: data:; connect-src "+directory.href+" blob:; worker-src "+directory.href+" blob:; media-src "+directory.href+" blob: data:; font-src "+directory.href+"; frame-src 'none'; base-uri "+directory.href+"; form-action 'none'; object-src 'none'";
       const prefix='<meta http-equiv="Content-Security-Policy" content="'+attr(policy)+'"><base href="'+attr(directory.href)+'"><script src="'+attr(helperUrl.href)+'" data-game="'+config.id+'"></script>';
-      frame=document.createElement('iframe');frame.title=config.title;frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.allow='autoplay; fullscreen *; gamepad';frame.allowFullscreen=true;frame.referrerPolicy='no-referrer';
+      frame=document.createElement('iframe');frame.title=config.title;frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.allow='autoplay; fullscreen *; gamepad *';frame.allowFullscreen=true;frame.referrerPolicy='no-referrer';
       frame.srcdoc=config.runtimeHtml.replace(/<head(?:\s[^>]*)?>/i,match=>match+prefix);
       if(config.viewport){viewport=config.viewport;frame.style.cssText='inset:auto;left:50%;top:50%;width:'+viewport.width+'px;height:'+viewport.height+'px;transform-origin:center';}
       host.replaceChildren(frame);fit();
@@ -126,7 +126,7 @@
       if(Object.hasOwn(startupLabels,event.data.step))window.UnityPlayerStatus.startupStep=event.data.step;
     }else if(event.data.type==='game:render'){
       const r=event.data.render;
-      if(r&&['frames','loopEntries','clockNative','clockTimer','visible','colored','width','height'].every(key=>Number.isSafeInteger(r[key])&&r[key]>=0&&r[key]<=10000000)&&typeof r.lost==='boolean')window.UnityPlayerStatus.render={frames:r.frames,loopEntries:r.loopEntries,clockNative:r.clockNative,clockTimer:r.clockTimer,visible:r.visible,colored:r.colored,width:r.width,height:r.height,lost:r.lost};
+      if(r&&['frames','loopEntries','visible','colored','width','height'].every(key=>Number.isSafeInteger(r[key])&&r[key]>=0&&r[key]<=10000000)&&typeof r.lost==='boolean')window.UnityPlayerStatus.render={frames:r.frames,loopEntries:r.loopEntries,visible:r.visible,colored:r.colored,width:r.width,height:r.height,lost:r.lost};
     }else if(event.data.type==='game:ready'){
       clearTimeout(timer);loading.hidden=true;error.hidden=true;window.UnityPlayerStatus.phase='ready';window.UnityPlayerStatus.readyAt=performance.now();notify('game:ready');
     }else if(event.data.type==='game:error')fail(version,event.data.reason);

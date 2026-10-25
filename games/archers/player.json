@@ -2,12 +2,12 @@
   "version": 1,
   "id": "archers",
   "title": "Archers",
-  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script src=\"animation-clock.js?v=1\"></script><script defer src=\"runtime.js?v=loop-startup-5\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js?v=gamepad-startup-6\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
   "assets": {
     "framework": {
       "path": "Build/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
-      "bytes": 368651,
-      "sha256": "e8f8ea041b00a08d12af7f2793336033f6e04df1ca0afbd98bcdcf79665440ef"
+      "bytes": 368815,
+      "sha256": "8802a319d69bf41059b545e718b80d9de23eb27058acb6550541c60b9a597c7f"
     },
     "data": {
       "path": "Build/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
