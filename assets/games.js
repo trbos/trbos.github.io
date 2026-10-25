@@ -4,7 +4,7 @@
     Object.freeze({"id":"hextris","name":"Hextris","url":"games/hextris/","trustedPlayer":true}),
     Object.freeze({"id":"geometry-dash","name":"Geometry Dash","url":"games/geometry-dash/","trustedPlayer":true}),
     Object.freeze({"id":"jambling","name":"Jambling","url":"https://snoozingmax.github.io/Jambling/","external":true}),
-    Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/?v=render-10","trustedPlayer":true}),
+    Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/?v=loop-11","trustedPlayer":true}),
     Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true}),
     Object.freeze({"id":"eaglercraft","name":"Eaglercraft","url":"games/eaglercraft/","trustedPlayer":true,"startup":"heavy"})
   ]);

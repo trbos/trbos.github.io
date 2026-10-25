@@ -41,7 +41,7 @@
   }
   function timeout(version){
     const status=window.UnityPlayerStatus,label=startupLabels[status.startupStep],r=status.render;
-    const detail=status.startupStep==='render'&&r?' (frames '+r.frames+'; pixels '+r.visible+'/'+r.colored+'; '+(r.lost?'context lost':r.width+'x'+r.height)+')':'';
+    const detail=status.startupStep==='render'&&r?' (frames '+r.frames+'; ticks '+r.loopEntries+'; clock '+r.clockNative+'/'+r.clockTimer+'; pixels '+r.visible+'/'+r.colored+'; '+(r.lost?'context lost':r.width+'x'+r.height)+')':'';
     fail(version,(label?label+' timed out':'Loading timed out')+detail+'.');
   }
   function fail(version,reason){
@@ -126,7 +126,7 @@
       if(Object.hasOwn(startupLabels,event.data.step))window.UnityPlayerStatus.startupStep=event.data.step;
     }else if(event.data.type==='game:render'){
       const r=event.data.render;
-      if(r&&['frames','visible','colored','width','height'].every(key=>Number.isSafeInteger(r[key])&&r[key]>=0&&r[key]<=10000000)&&typeof r.lost==='boolean')window.UnityPlayerStatus.render={frames:r.frames,visible:r.visible,colored:r.colored,width:r.width,height:r.height,lost:r.lost};
+      if(r&&['frames','loopEntries','clockNative','clockTimer','visible','colored','width','height'].every(key=>Number.isSafeInteger(r[key])&&r[key]>=0&&r[key]<=10000000)&&typeof r.lost==='boolean')window.UnityPlayerStatus.render={frames:r.frames,loopEntries:r.loopEntries,clockNative:r.clockNative,clockTimer:r.clockTimer,visible:r.visible,colored:r.colored,width:r.width,height:r.height,lost:r.lost};
     }else if(event.data.type==='game:ready'){
       clearTimeout(timer);loading.hidden=true;error.hidden=true;window.UnityPlayerStatus.phase='ready';window.UnityPlayerStatus.readyAt=performance.now();notify('game:ready');
     }else if(event.data.type==='game:error')fail(version,event.data.reason);

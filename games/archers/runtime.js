@@ -13,7 +13,7 @@
   // local adapter exposes browser facts, local saves and local ad-skip rewards.
   // It never contacts an ad service or reports purchases or an online identity.
   const language=(navigator.language||'en').split('-')[0];
-  let instance,platform,scan=null,renderTimer=null,stopped=false;
+  let instance,platform,clock,scan=null,renderTimer=null,stopped=false;
   const notify=type=>parent.postMessage({type:'game:'+type,id,reason:state.errors.at(-1)},parentOrigin);
   const step=value=>{if(stopped||state.phase==='error'||state.startupStep===value)return;state.startupStep=value;parent.postMessage({type:'game:startup',id,step:value},parentOrigin);};
   step('assets');
@@ -26,11 +26,14 @@
   };
   function resumeAudio(event){if(!event.isTrusted)return;for(const [media,queue]of pendingAudio){pendingAudio.delete(media);for(const request of queue)Promise.resolve(nativePlay.apply(media,request.args)).then(value=>{state.audioDeferred=Math.max(0,(state.audioDeferred||0)-1);request.resolve(value);},request.reject);}}
   addEventListener('pointerdown',resumeAudio,{capture:true});addEventListener('keydown',resumeAudio,{capture:true});
-  const fail=e=>{if(stopped)return;clearInterval(renderTimer);state.errors.push(String(e?.message||e));state.phase='error';document.getElementById('status').textContent='Unable to load game.';notify('error');};
+  const fail=e=>{if(stopped||state.phase==='error')return;scan=null;clock?.dispose();clearInterval(renderTimer);state.errors.push(String(e?.message||e));state.phase='error';document.getElementById('status').textContent='Unable to load game.';notify('error');};
+  // Keep native frame timing normally. If callbacks stop while this game is
+  // visible, use a bounded timer clock; hidden tabs never receive timer frames.
+  state.clock={native:0,timer:0};
   canvas.addEventListener('webglcontextlost',()=>fail('Game graphics context was lost. Tap Retry.'));
   const blob=(b,type)=>{const u=URL.createObjectURL(new Blob([b],{type}));urls.push(u);return u;};
   async function decode(b,type){const h=new Uint8Array(b,0,Math.min(2,b.byteLength));if(h[0]===31&&h[1]===139)b=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();return blob(b,type);}
-  const ownScripts=new Set([script.src,...['unity-assets.js','local-platform.js','other-platform.js'].map(name=>new URL('../_shared/'+name,document.baseURI).href)]);
+  const ownScripts=new Set([script.src,new URL('animation-clock.js?v=1',document.baseURI).href,...['unity-assets.js','local-platform.js','other-platform.js'].map(name=>new URL('../_shared/'+name,document.baseURI).href)]);
   addEventListener('error',event=>{
     const source=String(event.filename||'');
     // Managed browsers may inject their own scripts into this frame. Keep
@@ -47,7 +50,7 @@
   // Mobile browsers cannot lock the cursor. Native touch input continues through
   // the canvas; suppress only that unsupported request once touch is observed.
   canvas.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')canvas.requestPointerLock=()=>Promise.resolve();},{capture:true,passive:true});
-  (async()=>{await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createLocalGamePlatform(platformOptions);window.createOtherGamePlatform?.({...platformOptions,sdk});const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};step('decode');await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
+  (async()=>{clock=window.installGameAnimationClock({scope:window,stats:state.clock,visible:()=>document.visibilityState==='visible'&&canvas.clientWidth>0&&canvas.clientHeight>0});await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createLocalGamePlatform(platformOptions);window.createOtherGamePlatform?.({...platformOptions,sdk});const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};step('decode');await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
     step('loader');
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=u.loader;s.onload=resolve;s.onerror=reject;document.head.append(s);});
     if(typeof createUnityInstance!=='function')throw Error('Invalid game loader');
@@ -61,6 +64,7 @@
       cacheControl(){
         this.companyName=null;this.productName=null;
         if(!this.localBodyReader){
+          this.abortHandler=message=>{fail(message||'Game engine aborted.');return true;};
           this.localBodyReader=this.readBodyWithProgress;
           const read=this.localBodyReader;
           // These exact blob URLs contain the already verified downloads. Read
@@ -77,11 +81,14 @@
         }
         return 'no-store';
       },
+      preMainLoop(){state.loopEntries=(state.loopEntries||0)+1;},
       postMainLoop(){state.frames++;if(scan)scan();},
+      onAbort(message){fail(message||'Game engine aborted.');},
+      quit(status,error){if(status!==0)fail(error||'Game engine stopped ('+status+').');throw error;},
       showBanner(message,type){if(type==='error')fail(message);}
     },value=>{state.engineProgress=value;if(value>=.9)step('engine-init');});window.unityInstance=instance;sdk.localBridge?.flush();state.phase='initialized';state.initializedAt=performance.now();step('render');
     const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)throw Error('WebGL unavailable');let last=0,passes=0,pixels=new Uint8Array(4);
-    const renderReport=()=>parent.postMessage({type:'game:render',id,render:{frames:state.frames,visible:state.visibleSamples||0,colored:state.coloredSamples||0,lost:gl.isContextLost(),width:gl.drawingBufferWidth,height:gl.drawingBufferHeight}},parentOrigin);
+    const renderReport=()=>parent.postMessage({type:'game:render',id,render:{frames:state.frames,loopEntries:state.loopEntries||0,clockNative:state.clock.native,clockTimer:state.clock.timer,visible:state.visibleSamples||0,colored:state.coloredSamples||0,lost:gl.isContextLost(),width:gl.drawingBufferWidth,height:gl.drawingBufferHeight}},parentOrigin);
     renderReport();renderTimer=setInterval(renderReport,2000);
     scan=()=>{if(stopped||performance.now()-last<200)return;last=performance.now();let visible=0,colored=0;
       // Unity versions finish their frame with different render targets bound.
@@ -96,5 +103,5 @@
       if(passes>=3){scan=null;clearInterval(renderTimer);renderReport();state.phase='ready';state.readyAt=performance.now();document.getElementById('status').hidden=true;notify('ready');canvas.focus();}
     };
   })().catch(fail);
-  addEventListener('pagehide',()=>{stopped=true;clearInterval(renderTimer);platform?.localBridge?.dispose();for(const u of urls)URL.revokeObjectURL(u);instance?.Quit().catch(()=>{});});
+  addEventListener('pagehide',()=>{stopped=true;clock?.dispose();clearInterval(renderTimer);platform?.localBridge?.dispose();for(const u of urls)URL.revokeObjectURL(u);instance?.Quit().catch(()=>{});});
 })();
