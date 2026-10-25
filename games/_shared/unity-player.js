@@ -12,6 +12,7 @@
   const names = ['loader','framework','data','code'];
   const kinds = {loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'};
   const LIMIT = 25*1024*1024;
+  const startupLabels = {assets:'Receiving game files',decode:'Preparing game files',loader:'Starting game loader','engine-assets':'Reading engine files','engine-init':'Starting game engine',render:'Rendering game'};
   let epoch = 0, controller = null, frame = null, channel = null, timer = null, current = null, diskPromise = null, viewport = null;
   const attr = value => String(value).replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));
   const digest = async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
@@ -38,6 +39,7 @@
     const scale=Math.min(host.clientWidth/viewport.width,host.clientHeight/viewport.height);
     frame.style.transform='translate(-50%,-50%) scale('+scale+')';
   }
+  function timeout(version){const label=startupLabels[window.UnityPlayerStatus.startupStep];fail(version,label?label+' timed out.':'Loading timed out.');}
   function fail(version,reason){
     if(version!==epoch)return;
     const message=String(reason?.message||reason||'');
@@ -72,7 +74,7 @@
     const values={},counts={};let lastSignal=0;
     const update=(name,n)=>{counts[name]=n;if(version===epoch){
       const received=Object.values(counts).reduce((a,b)=>a+b,0);
-      if(performance.now()-lastSignal>500){lastSignal=performance.now();clearTimeout(timer);timer=setTimeout(()=>fail(version,'Loading timed out.'),60000);if(channel)channel.postMessage({progress:true});notify('game:progress');}
+      if(performance.now()-lastSignal>500){lastSignal=performance.now();clearTimeout(timer);timer=setTimeout(()=>timeout(version),60000);if(channel)channel.postMessage({progress:true});notify('game:progress');}
       progress.value=Math.min(1,received/config.total);window.UnityPlayerStatus.bytes=received;
     }};
     await Promise.all(names.map(async name=>{
@@ -94,7 +96,7 @@
     const version=++epoch;dispose();current=null;controller=new AbortController();const signal=controller.signal;
     document.body.dataset.phase='loading';loading.hidden=false;error.hidden=true;progress.value=0;
     window.UnityPlayerStatus={phase:'loading',cacheHits:0,cacheMissReasons:[],networkRetries:0,bytes:0,startedAt:performance.now()};
-    timer=setTimeout(()=>fail(version,'Loading timed out.'),60000);
+    timer=setTimeout(()=>timeout(version),60000);
     try{
       const text=await manifest(signal);const config=validate(JSON.parse(text));if(version!==epoch)return;current=config;document.title=config.title;window.UnityPlayerStatus.id=config.id;
       const policy="default-src 'none'; script-src "+directory.href+' '+helperUrl.href+' '+new URL('./local-platform.js',script.src).href+' '+new URL('./other-platform.js',script.src).href+" blob: 'unsafe-eval' 'wasm-unsafe-eval'; style-src "+directory.href+" 'unsafe-inline'; img-src "+directory.href+" blob: data:; connect-src "+directory.href+" blob:; worker-src "+directory.href+" blob:; media-src "+directory.href+" blob: data:; font-src "+directory.href+"; frame-src 'none'; base-uri "+directory.href+"; form-action 'none'; object-src 'none'";
@@ -116,6 +118,8 @@
       if(channel||event.ports.length!==1)return;channel=event.ports[0];const port=channel;
       try{const values=await assets(current,controller.signal,version);if(version!==epoch)return;document.body.dataset.phase='engine';port.postMessage({ok:true,values},names.map(name=>values[name].buffer));port.close();}
       catch(reason){try{port.postMessage({ok:false});port.close();}catch{}fail(version,reason);}
+    }else if(event.data.type==='game:startup'){
+      if(Object.hasOwn(startupLabels,event.data.step))window.UnityPlayerStatus.startupStep=event.data.step;
     }else if(event.data.type==='game:ready'){
       clearTimeout(timer);loading.hidden=true;error.hidden=true;window.UnityPlayerStatus.phase='ready';window.UnityPlayerStatus.readyAt=performance.now();notify('game:ready');
     }else if(event.data.type==='game:error')fail(version,event.data.reason);

@@ -15,6 +15,8 @@
   const language=(navigator.language||'en').split('-')[0];
   let instance,platform,scan=null,stopped=false;
   const notify=type=>parent.postMessage({type:'game:'+type,id,reason:state.errors.at(-1)},parentOrigin);
+  const step=value=>{if(stopped||state.phase==='error'||state.startupStep===value)return;state.startupStep=value;parent.postMessage({type:'game:startup',id,step:value},parentOrigin);};
+  step('assets');
   // Native music may start before the browser has received a user gesture.
   // Keep that real play request pending and retry it on trusted input.
   const nativePlay=HTMLMediaElement.prototype.play,pendingAudio=new Map();
@@ -44,15 +46,35 @@
   // Mobile browsers cannot lock the cursor. Native touch input continues through
   // the canvas; suppress only that unsupported request once touch is observed.
   canvas.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')canvas.requestPointerLock=()=>Promise.resolve();},{capture:true,passive:true});
-  (async()=>{await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createLocalGamePlatform(platformOptions);window.createOtherGamePlatform?.({...platformOptions,sdk});const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
+  (async()=>{await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createLocalGamePlatform(platformOptions);window.createOtherGamePlatform?.({...platformOptions,sdk});const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};step('decode');await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
+    step('loader');
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=u.loader;s.onload=resolve;s.onerror=reject;document.head.append(s);});
     if(typeof createUnityInstance!=='function')throw Error('Invalid game loader');
     const native=config.native;
+    step('engine-assets');
     instance=await createUnityInstance(canvas,{...native,dataUrl:u.data,frameworkUrl:u.framework,codeUrl:u.code,streamingAssetsUrl:new URL('StreamingAssets/',document.baseURI).href,
-      cacheControl(){this.companyName=null;this.productName=null;return 'no-store';},
+      cacheControl(){
+        this.companyName=null;this.productName=null;
+        if(!this.localBodyReader){
+          this.localBodyReader=this.readBodyWithProgress;
+          const read=this.localBodyReader;
+          // These exact blob URLs contain the already verified downloads. Read
+          // them once with the native body API; a second stream-reader loop can
+          // stall on mobile browsers. All other responses keep Unity's reader.
+          this.readBodyWithProgress=(response,onProgress,stream)=>{
+            if(!urls.includes(response.url))return read(response,onProgress,stream);
+            return response.arrayBuffer().then(buffer=>{
+              const bytes=new Uint8Array(buffer);
+              onProgress({type:'load',response,total:bytes.length,loaded:bytes.length,lengthComputable:true,chunk:stream?bytes:null});
+              response.parsedBody=bytes;state.bufferedAssetReads=(state.bufferedAssetReads||0)+1;return response;
+            });
+          };
+        }
+        return 'no-store';
+      },
       postMainLoop(){state.frames++;if(scan)scan();},
       showBanner(message,type){if(type==='error')fail(message);}
-    });window.unityInstance=instance;sdk.localBridge?.flush();state.phase='initialized';state.initializedAt=performance.now();
+    },value=>{state.engineProgress=value;if(value>=.9)step('engine-init');});window.unityInstance=instance;sdk.localBridge?.flush();state.phase='initialized';state.initializedAt=performance.now();step('render');
     const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)throw Error('WebGL unavailable');let last=0,passes=0,pixels=new Uint8Array(4);
     scan=()=>{if(stopped||performance.now()-last<200)return;last=performance.now();let visible=0,colored=0;
       // Unity versions finish their frame with different render targets bound.
