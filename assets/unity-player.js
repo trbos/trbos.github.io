@@ -5,7 +5,7 @@
   const directory = new URL('./',configUrl);
   const gameId = directory.pathname.match(/\/games\/([a-z0-9][a-z0-9-]{0,50})\/$/)?.[1];
   const helperUrl = new URL('./unity-assets.js',script.src);
-  helperUrl.searchParams.set('v','startup-2');
+  helperUrl.searchParams.set('v','download-recovery-3');
   const host = document.getElementById('unity-frame-host');
   const loading = document.getElementById('unity-loading');
   const progress = document.getElementById('unity-progress');
@@ -48,27 +48,29 @@
     for(const name of names){const a=value.assets[name];if(!a||!/^Build\/[A-Za-z0-9_.-]+$/.test(a.path)||!Number.isSafeInteger(a.bytes)||a.bytes<1||!/^[a-f0-9]{64}$/.test(a.sha256))throw Error();total+=a.bytes;if(total>LIMIT)throw Error();}
     return {...value,total};
   }
-  async function read(response,expected,update){
-    if(!response.ok)throw Error();const length=response.headers.get('content-length');if(length&&Number(length)>expected)throw Error();
-    const reader=response.body?.getReader();
-    if(!reader){const bytes=new Uint8Array(await response.arrayBuffer());if(bytes.length!==expected)throw Error();update(bytes.length);return bytes;}
-    const parts=[];let size=0;
-    try{while(true){const chunk=await reader.read();if(chunk.done)break;size+=chunk.value.length;if(size>expected)throw Error();parts.push(chunk.value);update(chunk.value.length);}if(size!==expected)throw Error();}
-    finally{await reader.cancel().catch(()=>{});reader.releaseLock();}
-    const bytes=new Uint8Array(size);let offset=0;for(const p of parts){bytes.set(p,offset);offset+=p.length;}return bytes;
-  }
   async function assets(config,signal,version){
-    const values={};let received=0;
-    const update=n=>{received+=n;if(version===epoch){progress.value=Math.min(1,received/config.total);window.UnityPlayerStatus.bytes=received;}};
+    const values={},counts={};let lastSignal=0;
+    const deadline=performance.now()+300000;
+    const update=(name,n)=>{
+      counts[name]=n;
+      if(version!==epoch)return;
+      const received=Object.values(counts).reduce((a,b)=>a+b,0);
+      progress.value=Math.min(1,received/config.total);window.UnityPlayerStatus.bytes=received;
+      if(performance.now()-lastSignal>500){
+        lastSignal=performance.now();notify('game:progress');
+        try{channel?.postMessage({progress:true});}catch{}
+        clearTimeout(timer);timer=setTimeout(()=>fail(version),Math.max(0,Math.min(config.startupTimeoutMs||30000,deadline-performance.now())));
+      }
+    };
     await Promise.all(names.map(async name=>{
       const spec=config.assets[name],url=new URL(spec.path,directory);url.searchParams.set('v',spec.sha256);
       if(url.origin!==location.origin||!url.pathname.startsWith(directory.pathname+'Build/'))throw Error();
       let bytes,hit=false;
       try{const body=await diskEntry(url.href);if(body instanceof Uint8Array&&body.length===spec.bytes&&await digest(body)===spec.sha256){bytes=body;hit=true;}else window.UnityPlayerStatus.cacheMissReasons.push(name+':missing-or-changed');}catch{window.UnityPlayerStatus.cacheMissReasons.push(name+':unavailable');}
-      if(hit){update(bytes.length);window.UnityPlayerStatus.cacheHits++;window.UnityPlayerStatus.cacheBackend='indexeddb';}
+      if(hit){update(name,bytes.length);window.UnityPlayerStatus.cacheHits++;window.UnityPlayerStatus.cacheBackend='indexeddb';}
       else{
-        const response=await fetch(url,{credentials:'omit',cache:'reload',referrerPolicy:'no-referrer',signal});
-        bytes=await read(response,spec.bytes,update);if(await digest(bytes)!==spec.sha256)throw Error();
+        bytes=await window.downloadGameAsset(url,{expected:spec.bytes,signal,onProgress:n=>update(name,n),onRetry:()=>{if(version===epoch)window.UnityPlayerStatus.networkRetries++;}});
+        if(await digest(bytes)!==spec.sha256)throw Error();
         try{await diskEntry(url.href,bytes);window.UnityPlayerStatus.cacheBackend='indexeddb';}catch{window.UnityPlayerStatus.cacheBackend='unavailable';}
       }
       if(signal.aborted||version!==epoch)throw Error();values[name]={buffer:bytes.buffer,type:kinds[name]};
@@ -78,7 +80,7 @@
   async function start(){
     const version=++epoch;dispose();current=null;controller=new AbortController();const signal=controller.signal;
     loading.hidden=false;error.hidden=true;progress.value=0;
-    window.UnityPlayerStatus={phase:'loading',cacheHits:0,cacheMissReasons:[],bytes:0,startedAt:performance.now()};
+    window.UnityPlayerStatus={phase:'loading',cacheHits:0,cacheMissReasons:[],networkRetries:0,bytes:0,startedAt:performance.now()};
     timer=setTimeout(()=>fail(version),30000);
     try{
       const response=await fetch(configUrl,{credentials:'omit',cache:'no-cache',referrerPolicy:'no-referrer',signal});if(!response.ok)throw Error();
@@ -98,7 +100,7 @@
     const version=epoch;
     if(event.data.type==='game:assets'){
       if(channel||event.ports.length!==1)return;channel=event.ports[0];const port=channel;
-      try{const values=await assets(current,controller.signal,version);if(version!==epoch)return;port.postMessage({ok:true,values},names.map(name=>values[name].buffer));port.close();}
+      try{const values=await assets(current,controller.signal,version);if(version!==epoch)return;clearTimeout(timer);timer=setTimeout(()=>fail(version),current.startupTimeoutMs||30000);port.postMessage({ok:true,values},names.map(name=>values[name].buffer));port.close();}
       catch{try{port.postMessage({ok:false});port.close();}catch{}fail(version);}
     }else if(event.data.type==='game:ready'){
       clearTimeout(timer);loading.hidden=true;error.hidden=true;window.UnityPlayerStatus.phase='ready';window.UnityPlayerStatus.readyAt=performance.now();notify('game:ready');

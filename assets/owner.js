@@ -573,7 +573,7 @@
     if (!gameRequestsLoading) {
       gameRequestsLoading = new Promise((resolve,reject) => {
         const css = document.createElement('link');css.rel='stylesheet';css.href='./assets/owner-game-requests.css?v=1';document.head.append(css);
-        const script = document.createElement('script');script.src='./assets/owner-game-requests.js?v=queue-2';
+        const script = document.createElement('script');script.src='./assets/owner-game-requests.js?v=starting-3';
         script.onload=resolve;script.onerror=reject;document.head.append(script);
       }).then(() => {
         gameRequests=window.createSiteOwnerGameRequests(window,host,async body => {
