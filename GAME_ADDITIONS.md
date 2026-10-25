@@ -55,11 +55,16 @@ change runtime domains, modify this policy or workflows, or change other games.
    content, or real-money gambling. Do not confuse ordinary cartoon combat
    with prohibited content. Reject poor controls, broken assets, black canvases,
    misleading copies and incomplete versions. For technical failures, reproduce
-   the problem and make up to two focused repair attempts within this game's
-   files. If it remains broken, actually run the alternate credible build;
+   the problem and make small focused fixes within this game's files. If a
+   version needs substantial repairs, a major rebuild, or missing gameplay
+   reimplemented, switch to another credible version instead. Actually run
+   the alternate builds;
    a distributor calling it slower is not a playtest. Only mark unavailable
    after the repairs and alternate fail, or a source is actually unavailable.
-   Record what was tried and the concrete remaining failure, rather than
+   Do not cancel or mark unavailable because of elapsed time, estimated effort,
+   or a belief that the work cannot finish quickly. Record a verified technical
+   blocker after checking credible alternatives. Record what was tried and the
+   concrete remaining failure, rather than
    immediately abandoning the request. Keep the work focused on adding this game.
    A standard SPDX license is not required. Record the actual version's notices
    and sources as informational metadata, including uncertainty when relevant.
