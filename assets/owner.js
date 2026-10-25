@@ -19,7 +19,7 @@
   let wakeTimer = null, monitorRunning = false, historyTicket = 0, recoveryAt = 0, recoveryProof = null;
   const origins = {browser:null,polytrack:null}, drafts = {browser:'',polytrack:''};
   const automatic = Object.fromEntries(TARGETS.map(target => [target,{
-    enabled:false,cooldownUntil:0,origin:null,failures:0,nextProbe:0,frameFailed:false,frameRetried:false
+    enabled:false,cooldownUntil:0,origin:null,failures:0,nextProbe:0,frameFailed:false,frameRetried:false,frameFailures:0,frameFailureAt:0
   }]));
 
   class RequestError extends Error {
@@ -48,6 +48,7 @@
     for (const name of target ? [target] : TARGETS) {
       const state = automatic[name]; state.origin = null; state.failures = 0; state.nextProbe = 0;
       state.frameFailed = false; state.frameRetried = false;
+      state.frameFailures = 0; state.frameFailureAt = 0;
     }
   }
   function publishConfig(data) {
@@ -381,6 +382,7 @@
     try {
       if (!await checkOwner(session,version) || version !== epoch || !foreground()) return false;
       if (isAutomatic && !recover && (!eligible() || !automatic[target].enabled || originalOrigin !== origins[target] || Date.now() < automatic[target].cooldownUntil)) {status();return false;}
+      if (isAutomatic && !recover && automatic[target].failures < 2 && automatic[target].frameFailures < 2) {status();return false;}
       if (!job && origins[target] === 'https://' + name + RUNTIME_SUFFIX) {status();return true;}
       if (!job) job = {name,requestId:crypto.randomUUID(),target,targetOrigin:'https://' + name + RUNTIME_SUFFIX,sourceOrigin:origins[target],automatic:isAutomatic,...(isAutomatic ? {fromOrigin:origins[target]} : {})};
       pending = job; storePending(job); render();
@@ -454,6 +456,16 @@
           state.origin = origin; state.failures = 0;
           if (target === 'browser' && state.frameFailed) {
             state.frameFailed = false;
+            // A readable health endpoint does not prove the Browser document
+            // can start on this device. Require a second real frame timeout
+            // after the retry; a single slow load still cannot rotate it.
+            if (state.frameFailures >= 2) {
+              try {await publicConfig();} catch {resetFailures(target);continue;}
+              if (!eligible() || busy || version !== epoch || origins[target] !== origin || !state.enabled || state.frameFailures < 2) continue;
+              if (state.cooldownUntil > Date.now()) {status('Auto rotation paused. Use Retry.');continue;}
+              await performRotation(randomName(),true,false,target);
+              break;
+            }
             if (!state.frameRetried) {state.frameRetried = true;retryFrame(origin);}
             else browserError(origin,'Backend is reachable. Use Retry.');
           }
@@ -503,14 +515,18 @@
   function browserFailed(value) {
     const origin = runtimeOrigin(value);
     if (currentRoute !== 'browser' || !origin || origin !== origins.browser || !eligible() || !automatic.browser.enabled) return false;
-    automatic.browser.frameFailed = true;
-    if (!automatic.browser.failures) automatic.browser.nextProbe = 0;
+    const state = automatic.browser;
+    state.frameFailed = true;
+    if (!state.frameFailures) {state.frameFailures = 1;state.frameFailureAt = Date.now();}
+    else if (Date.now() - state.frameFailureAt >= CONFIRM_DELAY) state.frameFailures = 2;
+    if (!state.failures) state.nextProbe = 0;
     schedule(100); return true;
   }
   function browserReady(value) {
     const origin = runtimeOrigin(value);
     if (currentRoute === 'browser' && origin && origin === origins.browser) {
       const state = automatic.browser; state.failures = 0; state.frameFailed = false; state.frameRetried = false;
+      state.frameFailures = 0; state.frameFailureAt = 0;
     }
   }
   function keepPolyTrackControl() {return verified && !!session && automatic.polytrack.enabled;}
