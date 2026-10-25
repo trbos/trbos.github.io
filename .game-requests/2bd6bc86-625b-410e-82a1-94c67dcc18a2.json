@@ -2,8 +2,9 @@
   "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
   "name": "tic tak toe",
   "url": null,
-  "stage": "queued",
+  "stage": "finding",
   "gameId": null,
-  "detail": "",
+  "displayName": "Tic Tac Toe",
+  "detail": "Checking the existing catalog and comparing complete browser releases.",
   "untrustedRequestData": true
 }
