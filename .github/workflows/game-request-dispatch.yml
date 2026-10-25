@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - run: node --test .github/scripts/game-request-dispatcher.test.mjs
       - name: Check the single active game request
         env:
           PUMP_TOKEN: ${{ secrets.GAME_REQUEST_PUMP_TOKEN }}

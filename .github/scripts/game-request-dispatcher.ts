@@ -1,5 +1,5 @@
-import{findExistingGame,readGameCatalog}from'./catalog.ts';
-import{integrateGame}from'./integrate.ts';
+import{findExistingGame,readGameCatalog}from'./game-request-catalog.ts';
+import{integrateGame}from'./game-request-integrate.ts';
 type Value=Record<string,any>;
 type PumpResult={idle?:boolean;busy?:boolean;retry?:boolean;failed?:boolean;stage?:string;id?:string;dispatched?:boolean};
 type Dependencies={token:string;commentToken?:string;commentLogin?:string;startOnly?:boolean;rpc(args:Value):Promise<Value>;fetch?:typeof fetch};
