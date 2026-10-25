@@ -47,6 +47,7 @@
     player.setAttribute('aria-label',game.name);
     player.setAttribute('aria-busy','true');
     loading.hidden = false; error.hidden = true;
+    error.querySelector('p').textContent='Unable to load game.';
     frame.title = game.name;
     frame.allow = 'autoplay; fullscreen; gamepad; clipboard-write';
     frame.allowFullscreen = true;
@@ -74,7 +75,10 @@
     if(!state?.game.trustedPlayer||event.source!==state.frame.contentWindow||event.origin!==location.origin||event.data?.id!==state.game.id)return;
     if(event.data.type==='game:progress'){clearTimeout(state.timer);state.timer=setTimeout(()=>finish(state,true),state.game.startup==='heavy'?120000:60000);}
     else if(event.data.type==='game:ready')finish(state);
-    else if(event.data.type==='game:error')finish(state,true);
+    else if(event.data.type==='game:error'){
+      if(typeof event.data.reason==='string'&&event.data.reason.length<=160)error.querySelector('p').textContent=event.data.reason;
+      finish(state,true);
+    }
   });
   window.addEventListener('pagehide',close);
   window.SiteGames = Object.freeze({get,open,close,focus:() => {if (!active) return false;active.frame.focus();return true;}});

@@ -2,7 +2,7 @@
   "version": 1,
   "id": "archers",
   "title": "Archers",
-  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js?v=managed-errors-2\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
   "assets": {
     "framework": {
       "path": "Build/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",

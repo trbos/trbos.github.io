@@ -27,7 +27,18 @@
   const fail=e=>{if(stopped)return;state.errors.push(String(e?.message||e));state.phase='error';document.getElementById('status').textContent='Unable to load game.';notify('error');};
   const blob=(b,type)=>{const u=URL.createObjectURL(new Blob([b],{type}));urls.push(u);return u;};
   async function decode(b,type){const h=new Uint8Array(b,0,Math.min(2,b.byteLength));if(h[0]===31&&h[1]===139)b=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();return blob(b,type);}
-  addEventListener('error',e=>{fail(e.message);});
+  const ownScripts=new Set([script.src,...['unity-assets.js','local-platform.js','other-platform.js'].map(name=>new URL('../_shared/'+name,document.baseURI).href)]);
+  addEventListener('error',event=>{
+    const source=String(event.filename||'');
+    // Managed browsers may inject their own scripts into this frame. Keep
+    // those errors visible to the browser without treating them as Unity
+    // failures. Actual startup/engine errors still reject or call showBanner.
+    if(ownScripts.has(source)||urls.includes(source)||source.startsWith('blob:'))fail(event.message);
+    else{
+      state.externalErrors=state.externalErrors||[];
+      if(state.externalErrors.length<8)state.externalErrors.push({message:String(event.message||'').slice(0,160),source:source.slice(0,160)});
+    }
+  });
   for(const name of ['pointerdown','keydown','touchstart'])canvas.addEventListener(name,()=>state.inputEvents++,{passive:true});
   canvas.addEventListener('contextmenu',e=>e.preventDefault());
   // Mobile browsers cannot lock the cursor. Native touch input continues through
