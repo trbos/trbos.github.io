@@ -118,6 +118,11 @@ change runtime domains, modify this policy or workflows, or change other games.
    deadlines too. Try focused fixes and the alternate build before giving up
    on technical issues. Test a complete session, not
    just an HTML load or a made-up ready event. Do not suppress errors to pass.
+   Persist the game's native progress, unlocks, settings and local worlds when
+   supported. Verify a real save survives leaving the game and a fresh browser
+   context with the same device storage. Never clear existing saves on startup,
+   evaluate serialized code, or mix a replacement build's incompatible save
+   format into the old slot. Keep opaque-frame save bridges and game isolation.
 5. Finish `.game-requests/<UUID>.json` without altering `requestId`, `name`, or
    `url`. Set `stage: "ready"`, a valid `gameId`, and `quality` containing
    `passed`, `adFree`, `contentAppropriate`, `played`, `retried`, `controls`

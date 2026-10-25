@@ -1,28 +1,29 @@
 {
   "version": 1,
   "id": "archers",
-  "title": "Archers",
-  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"../_shared/local-platform.js\"></script><script src=\"../_shared/other-platform.js\"></script><script defer src=\"runtime.js?v=gamepad-startup-6\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
+  "title": "Ragdoll Archers",
+  "runtimeHtml": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><title>Ragdoll Archers</title><link rel=\"stylesheet\" href=\"runtime.css\"><script src=\"local-sdk.js?v=2\"></script><script defer src=\"runtime.js?v=crazygames-saves-3\" data-config='{\"id\":\"archers\",\"native\":{\"companyName\":\"Ericetto\",\"productName\":\"Ragdoll Archers\",\"productVersion\":\"0.1\"}}'></script></head><body><canvas id=\"game\" tabindex=\"0\" aria-label=\"Archers\"></canvas><p id=\"status\" role=\"status\">Loading…</p></body></html>",
   "assets": {
+    "loader": {
+      "path": "Build/crazygames-42.loader.js",
+      "bytes": 20437,
+      "sha256": "441455412293faf048b6b02e4dbd6e8690477dbeeed6f6b943417fd6654bd4bf"
+    },
     "framework": {
-      "path": "Build/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb",
-      "bytes": 368815,
-      "sha256": "8802a319d69bf41059b545e718b80d9de23eb27058acb6550541c60b9a597c7f"
+      "path": "Build/crazygames-42.framework.js",
+      "bytes": 355100,
+      "sha256": "7ca27fe3412eb0518165b6215c23d9265c2d1355aea48bf08800360bb882e9a4"
     },
     "data": {
-      "path": "Build/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb",
-      "bytes": 1970560,
-      "sha256": "8b2fd68a65ab85ada75a89841bcc0310207797816fce32846d2ac27c43943bc5"
+      "path": "Build/crazygames-42.data.gz",
+      "bytes": 2586469,
+      "sha256": "54f8a55d27e3bb632db0e08c2f81965e3c30eed8582fe8d607d6e037455fbdb4"
     },
     "code": {
-      "path": "Build/b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb",
-      "bytes": 5245879,
-      "sha256": "b3d79160dd82928d895158f823467b5f2e488ecac17f5d68173e3c5cff187e4b"
-    },
-    "loader": {
-      "path": "Build/v111.loader.js",
-      "bytes": 114404,
-      "sha256": "e6704366c0d31dc610c55755e55eb2951735c3d09859a1d77946e16c37a30ef9"
+      "path": "Build/crazygames-42.wasm.gz",
+      "bytes": 6376794,
+      "sha256": "dcad73658b619cdd7d169b48e60a39a48293b28f08249e82bdea8958dd2c4df1"
     }
-  }
+  },
+  "saveSlot": "archers-crazygames-42"
 }

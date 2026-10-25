@@ -1,10 +1,6 @@
 (function () {
     'use strict';
 
-    // The legacy function serializer requires unsafe-eval when restoring a run.
-    // Start clean instead so the self-hosted game can keep a restrictive CSP.
-    localStorage.removeItem('saveState');
-
     function post(type) {
         if (window.parent === window) return;
         window.parent.postMessage({type: type, id: 'hextris'}, location.origin);

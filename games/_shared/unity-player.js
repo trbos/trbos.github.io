@@ -61,6 +61,7 @@
   }
   function validate(value){
     if(!value||value.version!==1||value.id!==gameId||typeof value.title!=='string'||value.title.length>80||typeof value.runtimeHtml!=='string'||value.runtimeHtml.length>65536||!/<head(?:\s[^>]*)?>/i.test(value.runtimeHtml))throw Error();
+    if(value.saveSlot!==undefined&&(typeof value.saveSlot!=='string'||!new RegExp('^'+gameId+'-[a-z0-9-]{1,40}$').test(value.saveSlot)))throw Error();
     if(!value.assets||Object.keys(value.assets).length!==names.length)throw Error();
     if(value.viewport!==undefined&&(!value.viewport||Object.keys(value.viewport).length!==2||value.viewport.width!==600||value.viewport.height!==1000))throw Error();
     let total=0;
@@ -115,9 +116,9 @@
     if(!current||!frame||event.source!==frame.contentWindow||event.origin!=='null'||event.data?.id!==current.id)return;
     const version=epoch;
     if(event.data.type==='game:save-load'){
-      let values={};try{const text=localStorage.getItem('trbosGameSave:'+current.id)||'{}';if(text.length<=1048576){const saved=JSON.parse(text);if(validSave(saved))values=saved;}}catch{}if(event.ports.length===1){event.ports[0].postMessage(values);event.ports[0].close();}
+      let values={};try{const text=localStorage.getItem('trbosGameSave:'+(current.saveSlot||current.id))||'{}';if(text.length<=1048576){const saved=JSON.parse(text);if(validSave(saved))values=saved;}}catch{}if(event.ports.length===1){event.ports[0].postMessage(values);event.ports[0].close();}
     }else if(event.data.type==='game:save-write'){
-      try{const values=event.data.values;if(!values||typeof values!=='object'||Array.isArray(values)||Object.keys(values).length>2000)return;for(const [k,v]of Object.entries(values))if(k.length>200||typeof v!=='string'||v.length>524288)return;const text=JSON.stringify(values);if(text.length<=1048576)localStorage.setItem('trbosGameSave:'+current.id,text);}catch{}
+      try{const values=event.data.values;if(!values||typeof values!=='object'||Array.isArray(values)||Object.keys(values).length>2000)return;for(const [k,v]of Object.entries(values))if(k.length>200||typeof v!=='string'||v.length>524288)return;const text=JSON.stringify(values);if(text.length<=1048576)localStorage.setItem('trbosGameSave:'+(current.saveSlot||current.id),text);}catch{}
     }else if(event.data.type==='game:assets'){
       if(channel||event.ports.length!==1)return;channel=event.ports[0];const port=channel;
       try{const values=await assets(current,controller.signal,version);if(version!==epoch)return;document.body.dataset.phase='engine';port.postMessage({ok:true,values},names.map(name=>values[name].buffer));port.close();}

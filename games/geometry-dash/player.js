@@ -2,7 +2,7 @@
   'use strict';
   const id='geometry-dash', directory=new URL('./',document.currentScript.src), saveKey='trbos.geometryDash.save.v1';
   const host=document.getElementById('host'),loading=document.getElementById('loading'),error=document.getElementById('error');
-  const allowedKey=k=>typeof k==='string'&&k.length<=180&&/^(?:gd_[A-Za-z0-9_]+|icon(?:MainColor|SecondaryColor|Current(?:Player|Ship|Ball|Wave|Spider|Bird|Robot))|userMusicVol|userSfxVol|menuMusicEnabled|playerName|created_levels|bestPercent_[A-Za-z0-9_-]+|practiceBestPercent_[A-Za-z0-9_-]+|viewedLevel_[A-Za-z0-9_-]+)$/.test(k);
+  const allowedKey=k=>typeof k==='string'&&k.length<=180&&/^(?:gd_[A-Za-z0-9_-]+|icon(?:MainColor|SecondaryColor|Current(?:Player|Ship|Ball|Wave|Spider|Bird|Robot))|userMusicVol|userSfxVol|menuMusicEnabled|playerName|created_levels|bestPercent_[A-Za-z0-9_-]+|practiceBestPercent_[A-Za-z0-9_-]+|viewedLevel_[A-Za-z0-9_-]+)$/.test(k);
   const escape=s=>String(s).replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));
   const digest=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),n=>n.toString(16).padStart(2,'0')).join('');
   let frame,port,timer,epoch=0,dbPromise,manifest,run,writeTail=Promise.resolve(),disconnect=()=>{},save={};

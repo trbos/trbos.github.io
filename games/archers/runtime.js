@@ -30,7 +30,7 @@
   canvas.addEventListener('webglcontextlost',()=>fail('Game graphics context was lost. Tap Retry.'));
   const blob=(b,type)=>{const u=URL.createObjectURL(new Blob([b],{type}));urls.push(u);return u;};
   async function decode(b,type){const h=new Uint8Array(b,0,Math.min(2,b.byteLength));if(h[0]===31&&h[1]===139)b=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();return blob(b,type);}
-  const ownScripts=new Set([script.src,...['unity-assets.js','local-platform.js','other-platform.js'].map(name=>new URL('../_shared/'+name,document.baseURI).href)]);
+  const ownScripts=new Set([script.src,...Array.from(document.scripts,s=>s.src)]);
   addEventListener('error',event=>{
     const source=String(event.filename||'');
     // Managed browsers may inject their own scripts into this frame. Keep
@@ -47,7 +47,7 @@
   // Mobile browsers cannot lock the cursor. Native touch input continues through
   // the canvas; suppress only that unsupported request once touch is observed.
   canvas.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')canvas.requestPointerLock=()=>Promise.resolve();},{capture:true,passive:true});
-  (async()=>{await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createLocalGamePlatform(platformOptions);window.createOtherGamePlatform?.({...platformOptions,sdk});const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};step('decode');await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
+  (async()=>{await saveReady;const platformOptions={id,language,storage,getInstance:()=>instance,markReady:()=>{state.nativeReady=true;}};const sdk=platform=window.createArchersPlatform(platformOptions);const a=await GameAssets.ready,types={loader:'application/javascript',framework:'application/javascript',data:'application/octet-stream',code:'application/wasm'},u={};step('decode');await Promise.all(Object.keys(types).map(async k=>u[k]=await decode(a.buffers[k],types[k])));
     step('loader');
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=u.loader;s.onload=resolve;s.onerror=reject;document.head.append(s);});
     if(typeof createUnityInstance!=='function')throw Error('Invalid game loader');
@@ -59,7 +59,9 @@
     step('engine-assets');
     instance=await createUnityInstance(canvas,{...native,...graphics,dataUrl:u.data,frameworkUrl:u.framework,codeUrl:u.code,streamingAssetsUrl:new URL('StreamingAssets/',document.baseURI).href,
       cacheControl(){
-        this.companyName=null;this.productName=null;
+        // Assets already live in the verified parent cache. Skip the loader's
+        // second cache without erasing the native product/save metadata.
+        this.cachedFetch=this.fetchWithProgress;
         if(!this.localBodyReader){
           this.abortHandler=message=>{fail(message||'Game engine aborted.');return true;};
           this.localBodyReader=this.readBodyWithProgress;
