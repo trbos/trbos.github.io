@@ -2,9 +2,9 @@
   "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
   "name": "tic tak toe",
   "url": null,
-  "stage": "finding",
+  "stage": "testing",
   "gameId": null,
   "displayName": "Tic Tac Toe",
-  "detail": "Checking the existing catalog and comparing complete browser releases.",
+  "detail": "Two complete browser builds tested through local PvP wins, AI losses, and retry. Comparing the selected responsive build in the site player across iPad-sized viewports.",
   "untrustedRequestData": true
 }
