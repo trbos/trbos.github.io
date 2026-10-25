@@ -13,7 +13,7 @@
   // local adapter exposes browser facts, local saves and local ad-skip rewards.
   // It never contacts an ad service or reports purchases or an online identity.
   const language=(navigator.language||'en').split('-')[0];
-  let instance,platform,scan=null,stopped=false;
+  let instance,platform,scan=null,renderTimer=null,stopped=false;
   const notify=type=>parent.postMessage({type:'game:'+type,id,reason:state.errors.at(-1)},parentOrigin);
   const step=value=>{if(stopped||state.phase==='error'||state.startupStep===value)return;state.startupStep=value;parent.postMessage({type:'game:startup',id,step:value},parentOrigin);};
   step('assets');
@@ -26,7 +26,8 @@
   };
   function resumeAudio(event){if(!event.isTrusted)return;for(const [media,queue]of pendingAudio){pendingAudio.delete(media);for(const request of queue)Promise.resolve(nativePlay.apply(media,request.args)).then(value=>{state.audioDeferred=Math.max(0,(state.audioDeferred||0)-1);request.resolve(value);},request.reject);}}
   addEventListener('pointerdown',resumeAudio,{capture:true});addEventListener('keydown',resumeAudio,{capture:true});
-  const fail=e=>{if(stopped)return;state.errors.push(String(e?.message||e));state.phase='error';document.getElementById('status').textContent='Unable to load game.';notify('error');};
+  const fail=e=>{if(stopped)return;clearInterval(renderTimer);state.errors.push(String(e?.message||e));state.phase='error';document.getElementById('status').textContent='Unable to load game.';notify('error');};
+  canvas.addEventListener('webglcontextlost',()=>fail('Game graphics context was lost. Tap Retry.'));
   const blob=(b,type)=>{const u=URL.createObjectURL(new Blob([b],{type}));urls.push(u);return u;};
   async function decode(b,type){const h=new Uint8Array(b,0,Math.min(2,b.byteLength));if(h[0]===31&&h[1]===139)b=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();return blob(b,type);}
   const ownScripts=new Set([script.src,...['unity-assets.js','local-platform.js','other-platform.js'].map(name=>new URL('../_shared/'+name,document.baseURI).href)]);
@@ -51,8 +52,12 @@
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=u.loader;s.onload=resolve;s.onerror=reject;document.head.append(s);});
     if(typeof createUnityInstance!=='function')throw Error('Invalid game loader');
     const native=config.native;
+    const appleTouch=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    // Keep the full CSS size while avoiding a Retina-sized render target on
+    // Apple touch devices. Preserve that target between Unity and presentation.
+    const graphics=appleTouch?{devicePixelRatio:1,webglContextAttributes:{preserveDrawingBuffer:true,premultipliedAlpha:false,powerPreference:2}}:{};
     step('engine-assets');
-    instance=await createUnityInstance(canvas,{...native,dataUrl:u.data,frameworkUrl:u.framework,codeUrl:u.code,streamingAssetsUrl:new URL('StreamingAssets/',document.baseURI).href,
+    instance=await createUnityInstance(canvas,{...native,...graphics,dataUrl:u.data,frameworkUrl:u.framework,codeUrl:u.code,streamingAssetsUrl:new URL('StreamingAssets/',document.baseURI).href,
       cacheControl(){
         this.companyName=null;this.productName=null;
         if(!this.localBodyReader){
@@ -76,6 +81,8 @@
       showBanner(message,type){if(type==='error')fail(message);}
     },value=>{state.engineProgress=value;if(value>=.9)step('engine-init');});window.unityInstance=instance;sdk.localBridge?.flush();state.phase='initialized';state.initializedAt=performance.now();step('render');
     const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');if(!gl)throw Error('WebGL unavailable');let last=0,passes=0,pixels=new Uint8Array(4);
+    const renderReport=()=>parent.postMessage({type:'game:render',id,render:{frames:state.frames,visible:state.visibleSamples||0,colored:state.coloredSamples||0,lost:gl.isContextLost(),width:gl.drawingBufferWidth,height:gl.drawingBufferHeight}},parentOrigin);
+    renderReport();renderTimer=setInterval(renderReport,2000);
     scan=()=>{if(stopped||performance.now()-last<200)return;last=performance.now();let visible=0,colored=0;
       // Unity versions finish their frame with different render targets bound.
       // Read the displayed canvas, then restore the engine's exact binding.
@@ -86,8 +93,8 @@
       try{gl.bindFramebuffer(target,null);for(const y of points)for(const x of points){gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(pixels[0]+pixels[1]+pixels[2]>40)visible++;if(Math.max(...pixels.subarray(0,3))-Math.min(...pixels.subarray(0,3))>25)colored++;}}
       finally{gl.bindFramebuffer(target,binding);}state.visibleSamples=visible;state.coloredSamples=colored;
       if(visible>3&&(colored>1||state.nativeReady)&&state.frames>=3)passes++;else passes=0;
-      if(passes>=3){scan=null;state.phase='ready';state.readyAt=performance.now();document.getElementById('status').hidden=true;notify('ready');canvas.focus();}
+      if(passes>=3){scan=null;clearInterval(renderTimer);renderReport();state.phase='ready';state.readyAt=performance.now();document.getElementById('status').hidden=true;notify('ready');canvas.focus();}
     };
   })().catch(fail);
-  addEventListener('pagehide',()=>{stopped=true;platform?.localBridge?.dispose();for(const u of urls)URL.revokeObjectURL(u);instance?.Quit().catch(()=>{});});
+  addEventListener('pagehide',()=>{stopped=true;clearInterval(renderTimer);platform?.localBridge?.dispose();for(const u of urls)URL.revokeObjectURL(u);instance?.Quit().catch(()=>{});});
 })();

@@ -39,7 +39,11 @@
     const scale=Math.min(host.clientWidth/viewport.width,host.clientHeight/viewport.height);
     frame.style.transform='translate(-50%,-50%) scale('+scale+')';
   }
-  function timeout(version){const label=startupLabels[window.UnityPlayerStatus.startupStep];fail(version,label?label+' timed out.':'Loading timed out.');}
+  function timeout(version){
+    const status=window.UnityPlayerStatus,label=startupLabels[status.startupStep],r=status.render;
+    const detail=status.startupStep==='render'&&r?' (frames '+r.frames+'; pixels '+r.visible+'/'+r.colored+'; '+(r.lost?'context lost':r.width+'x'+r.height)+')':'';
+    fail(version,(label?label+' timed out':'Loading timed out')+detail+'.');
+  }
   function fail(version,reason){
     if(version!==epoch)return;
     const message=String(reason?.message||reason||'');
@@ -120,6 +124,9 @@
       catch(reason){try{port.postMessage({ok:false});port.close();}catch{}fail(version,reason);}
     }else if(event.data.type==='game:startup'){
       if(Object.hasOwn(startupLabels,event.data.step))window.UnityPlayerStatus.startupStep=event.data.step;
+    }else if(event.data.type==='game:render'){
+      const r=event.data.render;
+      if(r&&['frames','visible','colored','width','height'].every(key=>Number.isSafeInteger(r[key])&&r[key]>=0&&r[key]<=10000000)&&typeof r.lost==='boolean')window.UnityPlayerStatus.render={frames:r.frames,visible:r.visible,colored:r.colored,width:r.width,height:r.height,lost:r.lost};
     }else if(event.data.type==='game:ready'){
       clearTimeout(timer);loading.hidden=true;error.hidden=true;window.UnityPlayerStatus.phase='ready';window.UnityPlayerStatus.readyAt=performance.now();notify('game:ready');
     }else if(event.data.type==='game:error')fail(version,event.data.reason);
