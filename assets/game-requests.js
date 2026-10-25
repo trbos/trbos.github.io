@@ -2,7 +2,7 @@
   'use strict';
   const API='https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/game-requests',COOKIE='trbos_game_requests',PENDING='trbos.game-request.pending.v1';
   const HEX=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
-  const STAGES={waiting:'Queued',queued:'Queued',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
+  const STAGES={waiting:'Queued',queued:'Starting',finding:'Finding a version',testing:'Testing',adding:'Adding',publishing:'Publishing',added:'Added',unavailable:'Unavailable',failed:'Failed',cancelled:'Cancelled',deleting:'Removing',deleted:'Removed'};
   const terminal=new Set(['added','unavailable','failed','cancelled','deleting','deleted']);
   const grid=env.document.getElementById('games');if(!grid)return;
   const button=env.document.createElement('button');button.type='button';button.hidden=true;button.className='game-card game-request-card';button.setAttribute('aria-describedby','game-request-wait');button.innerHTML='<span class="game-request-card-heading"><span class="game-request-add" id="game-request-button-title">Add a game!</span><span class="game-request-wait" id="game-request-wait" aria-live="polite">Checking…</span><span class="game-request-current"><span class="game-request-current-name"></span><span class="game-request-current-stage"></span><progress max="100" aria-label="Active game request progress"></progress></span></span>';grid.prepend(button);
