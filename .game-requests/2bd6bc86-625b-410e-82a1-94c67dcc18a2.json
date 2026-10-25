@@ -1,0 +1,119 @@
+{
+  "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
+  "name": "tic tak toe",
+  "url": null,
+  "stage": "ready",
+  "gameId": "tic-tac-toe",
+  "displayName": "Tic Tac Toe",
+  "detail": "Added the MIT-licensed aminbazai browser build after testing it against PrinterNB. Native player sessions passed in iPad-sized landscape and portrait emulation; commit is ready for trusted verification.",
+  "untrustedRequestData": true,
+  "quality": {
+    "passed": true,
+    "adFree": true,
+    "contentAppropriate": true,
+    "played": true,
+    "retried": true,
+    "controls": true,
+    "sourcesCompared": [
+      "https://github.com/aminbazai/tic-tac-toe",
+      "https://github.com/PrinterNB/tic-tac-toe"
+    ],
+    "coldMs": 282,
+    "warmMs": 173,
+    "evidence": "Played local PvP to X wins and vs AI to an AI win, then retried to 9 open cells in iPad touch emulation. Landscape screenshot: .game-addition-qa/ipad-landscape.png; portrait: .game-addition-qa/ipad-portrait.png; warm reopen: .game-addition-qa/ipad-warm-landscape.png. No page errors or failed requests; no ads, accounts, or remote assets in selected build.",
+    "selection": {
+      "selectedSource": "https://github.com/aminbazai/tic-tac-toe",
+      "reason": "Both versions completed local PvP and AI sessions with correct win feedback and retry. PrinterNB adds board sizes, difficulty settings and a Worker-backed online mode, but its interface is less finished and the online service is not part of its self-contained local build. The aminbazai version has polished responsive controls, score tracking, two complete local modes and a tactical AI; it passed landscape/portrait touch-emulation sessions and warm reopen without external assets or runtime errors.",
+      "candidates": [
+        {
+          "source": "https://github.com/aminbazai/tic-tac-toe",
+          "version": "c84994c (2026-03-26)",
+          "kind": "fan-remake",
+          "tested": true,
+          "completeness": 4,
+          "controls": 5,
+          "polish": 5,
+          "performance": 5,
+          "evidence": "Played PvP through an X win and AI mode through an AI win, then started a fresh round. Its win/block/center/corner AI responded, score changed, and the responsive board and controls fit landscape and portrait touch emulation. Screenshots: .game-addition-qa/ipad-landscape.png and .game-addition-qa/ipad-portrait.png; no runtime errors or failed requests."
+        },
+        {
+          "source": "https://github.com/PrinterNB/tic-tac-toe",
+          "version": "c170edb (2026-08-01)",
+          "kind": "fan-remake",
+          "tested": true,
+          "completeness": 5,
+          "controls": 4,
+          "polish": 3,
+          "performance": 5,
+          "evidence": "Played Human vs Human to an X win, reset and placed another move, then played Human vs AI to an AI win and retried with all 9 cells open. The source also includes 3\u20136 board PvP, AI difficulty options and a Worker-backed online mode. Screenshot: /tmp/PrinterNB.png; no page errors in the local sessions."
+        }
+      ]
+    }
+  },
+  "license": {
+    "name": "MIT License",
+    "url": "https://github.com/aminbazai/tic-tac-toe/blob/c84994c/LICENSE"
+  },
+  "qaSteps": [
+    {
+      "type": "button",
+      "text": "Me vs Friend"
+    },
+    {
+      "type": "button",
+      "text": "Cell 1"
+    },
+    {
+      "type": "button",
+      "text": "Cell 4"
+    },
+    {
+      "type": "button",
+      "text": "Cell 2"
+    },
+    {
+      "type": "button",
+      "text": "Cell 5"
+    },
+    {
+      "type": "button",
+      "text": "Cell 3"
+    },
+    {
+      "type": "button",
+      "text": "New Round"
+    },
+    {
+      "type": "button",
+      "text": "Me vs AI"
+    },
+    {
+      "type": "button",
+      "text": "Cell 1"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "button",
+      "text": "Cell 2"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "button",
+      "text": "Cell 9"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "button",
+      "text": "New Round"
+    }
+  ]
+}
