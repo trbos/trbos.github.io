@@ -41,7 +41,7 @@
   function fail(version,reason){
     if(version!==epoch)return;
     const message=String(reason?.message||reason||'');
-    let label='Unable to load game.';
+    let label=message?message.replace(/\s+/g,' ').slice(0,140):'Unable to load game.';
     const http=/asset_http_(\d{3})/.exec(message);
     if(http)label='Download failed ('+http[1]+').';
     else if(/asset_integrity|asset_truncated|asset_too_large/.test(message))label='Game download was incomplete.';
@@ -72,7 +72,7 @@
     const values={},counts={};let lastSignal=0;
     const update=(name,n)=>{counts[name]=n;if(version===epoch){
       const received=Object.values(counts).reduce((a,b)=>a+b,0);
-      if(performance.now()-lastSignal>500){lastSignal=performance.now();clearTimeout(timer);timer=setTimeout(()=>fail(version),60000);if(channel)channel.postMessage({progress:true});notify('game:progress');}
+      if(performance.now()-lastSignal>500){lastSignal=performance.now();clearTimeout(timer);timer=setTimeout(()=>fail(version,'Loading timed out.'),60000);if(channel)channel.postMessage({progress:true});notify('game:progress');}
       progress.value=Math.min(1,received/config.total);window.UnityPlayerStatus.bytes=received;
     }};
     await Promise.all(names.map(async name=>{
@@ -94,7 +94,7 @@
     const version=++epoch;dispose();current=null;controller=new AbortController();const signal=controller.signal;
     document.body.dataset.phase='loading';loading.hidden=false;error.hidden=true;progress.value=0;
     window.UnityPlayerStatus={phase:'loading',cacheHits:0,cacheMissReasons:[],networkRetries:0,bytes:0,startedAt:performance.now()};
-    timer=setTimeout(()=>fail(version),60000);
+    timer=setTimeout(()=>fail(version,'Loading timed out.'),60000);
     try{
       const text=await manifest(signal);const config=validate(JSON.parse(text));if(version!==epoch)return;current=config;document.title=config.title;window.UnityPlayerStatus.id=config.id;
       const policy="default-src 'none'; script-src "+directory.href+' '+helperUrl.href+' '+new URL('./local-platform.js',script.src).href+' '+new URL('./other-platform.js',script.src).href+" blob: 'unsafe-eval' 'wasm-unsafe-eval'; style-src "+directory.href+" 'unsafe-inline'; img-src "+directory.href+" blob: data:; connect-src "+directory.href+" blob:; worker-src "+directory.href+" blob:; media-src "+directory.href+" blob: data:; font-src "+directory.href+"; frame-src 'none'; base-uri "+directory.href+"; form-action 'none'; object-src 'none'";
