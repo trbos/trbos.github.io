@@ -2,9 +2,9 @@
   "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
   "name": "tic tak toe",
   "url": null,
-  "stage": "testing",
-  "gameId": null,
+  "stage": "adding",
+  "gameId": "tic-tac-toe",
   "displayName": "Tic Tac Toe",
-  "detail": "Two complete browser builds tested through local PvP wins, AI losses, and retry. Comparing the selected responsive build in the site player across iPad-sized viewports.",
+  "detail": "Selected the MIT-licensed aminbazai build after testing both candidates. Added its local two-mode game files and began player-integrated viewport/session verification.",
   "untrustedRequestData": true
 }

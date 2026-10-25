@@ -7,6 +7,7 @@
     Object.freeze({"id":"block-blast","name":"Block Blast","url":"games/block-blast/","trustedPlayer":true,"startup":"heavy"}),
     Object.freeze({"id":"archers","name":"Ragdoll Archers","url":"games/archers/","trustedPlayer":true}),
     Object.freeze({"id":"crossy-road","name":"Crossy Road","url":"games/crossy-road/","trustedPlayer":true}),
+    Object.freeze({"id":"tic-tac-toe","name":"Tic Tac Toe","url":"games/tic-tac-toe/","trustedPlayer":true}),
     Object.freeze({"id":"eaglercraft","name":"Eaglercraft","url":"games/eaglercraft/","trustedPlayer":true,"startup":"heavy"})
   ]);
   const grid = document.getElementById('games');
