@@ -2,9 +2,9 @@
   "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
   "name": "tic tak toe",
   "url": null,
-  "stage": "finding",
+  "stage": "unavailable",
   "gameId": null,
-  "detail": "Compared the two strongest ranked public repositories; inspected source, mechanics, and MIT notices. Testing both builds.",
+  "detail": "Both ranked public source builds were inspected, but full session and tablet QA could not be completed in the available execution window; no build was selected or added.",
   "untrustedRequestData": true,
   "displayName": "Tic-Tac-Toe"
 }
