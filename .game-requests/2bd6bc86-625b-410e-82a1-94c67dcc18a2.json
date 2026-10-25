@@ -2,9 +2,8 @@
   "requestId": "2bd6bc86-625b-410e-82a1-94c67dcc18a2",
   "name": "tic tak toe",
   "url": null,
-  "stage": "unavailable",
+  "stage": "queued",
   "gameId": null,
-  "detail": "Both ranked public source builds were inspected, but full session and tablet QA could not be completed in the available execution window; no build was selected or added.",
-  "untrustedRequestData": true,
-  "displayName": "Tic-Tac-Toe"
+  "detail": "",
+  "untrustedRequestData": true
 }
