@@ -1,0 +1,9 @@
+{
+  "requestId": "6c981221-9fbe-48d3-a227-8f22a19ea27b",
+  "name": "the one 3d battle game red vs blue",
+  "url": null,
+  "stage": "unavailable",
+  "gameId": null,
+  "detail": "The tested Mini-Royale source rendered map geometry but its camera stayed at the origin and showed mostly sky; two focused camera fixes did not produce a verified playable session. BuildNow GG’s direct domain redirected to an unrelated survey and its available installer is not a standalone web build. No complete playable candidate passed testing.",
+  "untrustedRequestData": true
+}
