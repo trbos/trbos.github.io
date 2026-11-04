@@ -2,6 +2,7 @@
 :root{color-scheme:dark;--page:#101722;--band:#192331;--line:#2c3a4d;--text:#eef3ff;--muted:#aab8cf;--accent:#b7c5ff;--accent-text:#17233e;font:15px/1.5 SiteInter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);background:var(--page);-webkit-font-smoothing:antialiased}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+html[data-polytrack-only] .site-header,html[data-polytrack-only] #home{display:none}
 body{margin:0;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;background:var(--page)}
 body[data-page=browser]{height:100vh;height:100dvh;min-height:0;overflow:hidden}
 a{color:inherit}

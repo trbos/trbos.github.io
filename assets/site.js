@@ -1,7 +1,12 @@
 (() => {
   'use strict';
   const CONTROL_URL = 'https://bawybmihvidtmpfpyajg.supabase.co/functions/v1/site-control';
-  const POLYTRACK_URL = location.origin + '/polytrack/';
+  const POLYTRACK_URL = location.origin + '/polytrack/open/';
+  const polytrackOnly = document.documentElement.hasAttribute('data-polytrack-only');
+  if (polytrackOnly && ['', '#', '#/'].includes(location.hash)) {
+    location.replace(POLYTRACK_URL);
+    return;
+  }
   const ORIGIN_KEY = 'siteBrowserOrigin';
   const validOrigin = (value,target = 'browser') => {
     if (typeof value !== 'string') return false;
@@ -157,7 +162,7 @@
     const link = event.target.closest('a[href]');
     if (!link) return;
     const url = new URL(link.href,location.href);
-    if (url.origin === location.origin && url.pathname === '/polytrack/' && openOwnerPolyTrack(url.href)) event.preventDefault();
+    if (url.origin === location.origin && url.pathname === '/polytrack/open/' && openOwnerPolyTrack(url.href)) event.preventDefault();
   });
   function clearPlayer() {if (active) {clearTimeout(active.timer); active.frame?.remove(); active = null;}}
   function finishLoading(state) {
@@ -194,6 +199,7 @@
     const game = current.path.startsWith('/games/') ? window.SiteGames?.get(current.path.slice(7)) : null;
     if (current.path.startsWith('/games/') && !game) {location.replace('#/games'); return;}
     const page = game ? 'game' : current.path === '/games' ? 'games' : current.path === '/browser' ? 'browser' : current.path === '/hx' ? 'hx' : current.path === '/owner' ? 'owner' : 'home';
+    if (polytrackOnly && page === 'home') {location.replace(POLYTRACK_URL);return;}
     const changed = currentPage !== null && currentPage !== page;
     if (page === 'browser' && current.query.has('url')) browserSite = readSite(current.query.get('url'));
     updateBrowserLinks();
